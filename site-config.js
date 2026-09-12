@@ -36,6 +36,7 @@ window.TIANCAI_CONFIG = {
     pro20: { name: "Pro 20×", price: 1250, period: "" },
     // 只有确认按月收费后，才把 period 改为“/ 月”。
   },
+  shopUrl: "https://wzyp.cn/shop/Z171IV7R", // 添财AI 店铺地址
   support: {
     remoteToolUrl: "https://uuyc.163.com/", // 需要远程协助时，先下载安装 UU 远程
   },

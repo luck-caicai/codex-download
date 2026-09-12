@@ -154,6 +154,7 @@ summary::-webkit-details-marker { display: none; }
 .membership-intro { display: flex; flex-direction: column; justify-content: space-between; padding: 8px 0; }
 .membership-intro h2 { font-size: 30px; line-height: 1.4; letter-spacing: -.8px; font-weight: 680; }
 .membership-intro > div > p { margin-top: 17px; color: var(--text-secondary); font-size: 15px; line-height: 1.8; }
+.shop-entry { margin-top: 22px; }
 .service-note { display: flex; align-items: flex-start; gap: 10px; color: var(--text-secondary); font-size: 13px; line-height: 1.8; margin-top: 28px; }
 .service-note svg { color: var(--accent); width: 20px; height: 20px; margin-top: 2px; }
 .pricing-list { display: grid; gap: 12px; }
@@ -218,6 +219,7 @@ summary::-webkit-details-marker { display: none; }
 .consult-contact { margin-bottom: 18px; text-align: center; }
 .consult-qr { margin: 0 auto 15px; object-fit: contain; background: white; padding: 6px; border-radius: 8px; }
 .consult-contact p { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+.consult-actions { display: grid; gap: 10px; }
 .modal-footnote { color: var(--text-secondary); font-size: 12px; margin-top: 14px; line-height: 1.7; text-align: center; }
 .toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 30; max-width: calc(100% - 32px); background: var(--text); color: var(--page); border-radius: 10px; padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow-hover); text-align: center; }
 .noscript-note { padding-block: 15px; }

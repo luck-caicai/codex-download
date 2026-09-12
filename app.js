@@ -94,6 +94,14 @@
     row.querySelector('[data-period]').textContent = plan.period;
   });
 
+  const shopUrl = publicUrl(config.shopUrl);
+  if (shopUrl) {
+    document.querySelectorAll('[data-shop-link]').forEach(link => {
+      link.href = shopUrl;
+      link.hidden = false;
+    });
+  }
+
   const remoteToolUrl = publicUrl(config.support?.remoteToolUrl);
   if (remoteToolUrl) {
     const remoteLink = document.querySelector('[data-remote-tool-link]');
