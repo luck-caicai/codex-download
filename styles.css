@@ -80,7 +80,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px soli
 .brand-name { font-size: 24px; font-weight: 760; letter-spacing: -.9px; line-height: 1; }
 .brand-name > span { font-family: Arial, sans-serif; margin-left: 3px; letter-spacing: -1px; }
 .main-nav { display: flex; align-items: center; gap: 30px; margin-left: auto; }
-.nav-link { font-size: 14px; font-weight: 530; color: var(--text-secondary); transition: color .15s; }
+.nav-link { font-size: 14px; font-weight: 530; white-space: nowrap; color: var(--text-secondary); transition: color .15s; }
 .nav-link:hover { color: var(--accent); }
 .header-actions { display: flex; align-items: center; gap: 18px; }
 .icon-button { border: 0; background: transparent; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; padding: 0; color: var(--text-secondary); }
@@ -258,14 +258,16 @@ summary::-webkit-details-marker { display: none; }
   .community-copy > p br { display: none; }
 }
 @media (max-width: 767px) {
+  html { scroll-padding-top: 128px; }
   .wrap { width: calc(100% - 36px); }
-  .header-inner { height: 68px; gap: 16px; }
+  .header-inner { display: grid; grid-template-columns: 1fr auto; height: auto; min-height: 68px; gap: 10px 16px; padding-block: 12px; }
   .brand-name { font-size: 22px; }
   .brand-symbol { width: 33px; height: 33px; font-size: 20px; border-radius: 10px; }
-  .main-nav { gap: 18px; }
+  .main-nav { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; gap: 18px; margin-left: 0; }
   .nav-link { font-size: 13px; }
-  .main-nav .nav-link:last-child { display: none; }
-  .header-actions { margin-left: 0; }
+  .main-nav .nav-link[href="#community"] { display: none; }
+  .main-nav .nav-shop { min-height: 40px; padding: 9px 12px; font-size: 13px; }
+  .header-actions { grid-column: 2; grid-row: 1; margin-left: 0; }
   .icon-button { width: 34px; height: 34px; }
   .hero { grid-template-columns: 1fr; padding-top: 35px; padding-bottom: 30px; gap: 22px; }
   .hero h1 { font-size: 40px; line-height: 1.25; letter-spacing: -1px; }
