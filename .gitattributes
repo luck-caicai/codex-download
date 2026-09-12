@@ -1,0 +1,10 @@
+# Keep shell scripts runnable when the repository is checked out on Windows.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.sh text eol=lf
+*.command text eol=lf
+
+# Download archives and images must remain byte-for-byte intact.
+*.zip binary
+*.jpg binary
+*.webp binary

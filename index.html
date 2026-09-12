@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f8f7">
+  <meta name="description" content="添财AI 下载中心。选择 Windows 或 Mac 安装包，了解 ChatGPT Plus、Pro 代充服务，加入微信交流群。">
+  <meta property="og:title" content="添财AI · 下载与会员服务">
+  <meta property="og:description" content="下载安装、GPT 代充、微信交流。把 AI 用起来，从这里开始。">
+  <meta property="og:type" content="website">
+  <title>添财AI · 下载与会员服务</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script>
+    try { const t = localStorage.getItem('tiancai-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (_) {}
+  </script>
+  <script src="./site-config.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <!-- Phosphor Icons 2.1.1, MIT; see assets/PHOSPHOR-LICENSE.txt. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="icon-sun" viewBox="0 0 256 256"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></symbol>
+<symbol id="icon-moon" viewBox="0 0 256 256"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></symbol>
+<symbol id="icon-wechat-logo" viewBox="0 0 256 256"><path d="M144,140a12,12,0,1,1-12-12A12,12,0,0,1,144,140Zm44-12a12,12,0,1,0,12,12A12,12,0,0,0,188,128Zm51.34,83.47a16,16,0,0,1-19.87,19.87l-24.71-7.27A80,80,0,0,1,86.43,183.42a79,79,0,0,1-25.19-7.35l-24.71,7.27a16,16,0,0,1-19.87-19.87l7.27-24.71A80,80,0,1,1,169.58,72.59a80,80,0,0,1,62.49,114.17ZM81.3,166.3a79.94,79.94,0,0,1,70.38-93.87A64,64,0,0,0,39.55,134.19a8,8,0,0,1,.63,6L32,168l27.76-8.17a8,8,0,0,1,6,.63A63.45,63.45,0,0,0,81.3,166.3Zm135.15,15.89a64,64,0,1,0-26.26,26.26,8,8,0,0,1,6-.63L224,216l-8.17-27.76A8,8,0,0,1,216.45,182.19Z"/></symbol>
+<symbol id="icon-arrow-up-right" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></symbol>
+<symbol id="icon-question" viewBox="0 0 256 256"><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></symbol>
+<symbol id="icon-windows-logo" viewBox="0 0 256 256"><path d="M208,136H128a8,8,0,0,0-8,8v57.45a8,8,0,0,0,6.57,7.88l80,14.54A7.61,7.61,0,0,0,208,224a8,8,0,0,0,8-8V144A8,8,0,0,0,208,136Zm-8,70.41-64-11.63V152h64ZM96,136H32a8,8,0,0,0-8,8v40a8,8,0,0,0,6.57,7.87l64,11.64a8.54,8.54,0,0,0,1.43.13,8,8,0,0,0,8-8V144A8,8,0,0,0,96,136Zm-8,50.05-48-8.73V152H88ZM213.13,33.86a8,8,0,0,0-6.56-1.73l-80,14.55A8,8,0,0,0,120,54.55V112a8,8,0,0,0,8,8h80a8,8,0,0,0,8-8V40A8,8,0,0,0,213.13,33.86ZM200,104H136V61.22l64-11.63ZM101.13,54.22a8,8,0,0,0-6.56-1.73l-64,11.64A8,8,0,0,0,24,72v40a8,8,0,0,0,8,8H96a8,8,0,0,0,8-8V60.36A8,8,0,0,0,101.13,54.22ZM88,104H40V78.68L88,70Z"/></symbol>
+<symbol id="icon-apple-logo" viewBox="0 0 256 256"><path d="M223.3,169.59a8.07,8.07,0,0,0-2.8-3.4C203.53,154.53,200,134.64,200,120c0-17.67,13.47-33.06,21.5-40.67a8,8,0,0,0,0-11.62C208.82,55.74,187.82,48,168,48a72.2,72.2,0,0,0-40,12.13,71.56,71.56,0,0,0-90.71,9.09A74.63,74.63,0,0,0,16,123.4a127.06,127.06,0,0,0,40.14,89.73A39.8,39.8,0,0,0,83.59,224h87.68a39.84,39.84,0,0,0,29.12-12.57,125,125,0,0,0,17.82-24.6C225.23,174,224.33,172,223.3,169.59Zm-34.63,30.94a23.76,23.76,0,0,1-17.4,7.47H83.59a23.82,23.82,0,0,1-16.44-6.51A111.14,111.14,0,0,1,32,123,58.5,58.5,0,0,1,48.65,80.47,54.81,54.81,0,0,1,88,64h.78A55.45,55.45,0,0,1,123,76.28a8,8,0,0,0,10,0A55.44,55.44,0,0,1,168,64a70.64,70.64,0,0,1,36,10.35c-13,14.52-20,30.47-20,45.65,0,23.77,7.64,42.73,22.18,55.3A105.82,105.82,0,0,1,188.67,200.53ZM128.23,30A40,40,0,0,1,167,0h1a8,8,0,0,1,0,16h-1a24,24,0,0,0-23.24,18,8,8,0,1,1-15.5-4Z"/></symbol>
+<symbol id="icon-download-simple" viewBox="0 0 256 256"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"/></symbol>
+<symbol id="icon-info" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></symbol>
+<symbol id="icon-plus" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></symbol>
+<symbol id="icon-chat-circle-text" viewBox="0 0 256 256"><path d="M168,112a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,112Zm-8,24H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Zm72-8A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"/></symbol>
+<symbol id="icon-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
+<symbol id="icon-x" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></symbol>
+</svg>
+  <a class="skip-link" href="#downloads">跳到下载中心</a>
+  <header class="site-header">
+    <div class="header-inner wrap">
+      <a class="brand" href="#top" aria-label="添财AI 首页">
+        <img class="brand-symbol" src="./assets/favicon.svg" width="37" height="37" alt="" aria-hidden="true">
+        <span class="brand-name">添财<span>AI</span></span>
+      </a>
+      <nav class="main-nav" aria-label="主导航">
+        <a class="nav-link" href="#downloads">下载中心</a>
+        <a class="nav-link" href="#membership">GPT 代充</a>
+        <a class="nav-link" href="#community">微信交流群</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button theme-toggle" type="button" aria-label="切换深色外观" title="切换外观">
+          <svg class="icon sun-icon" aria-hidden="true"><use href="#icon-sun"></use></svg>
+          <svg class="icon moon-icon" aria-hidden="true"><use href="#icon-moon"></use></svg>
+        </button>
+        <a class="button button-small button-primary header-join" href="#community">
+          <svg class="icon" aria-hidden="true"><use href="#icon-wechat-logo"></use></svg>加入微信群
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>让 AI，更好上手</p>
+        <h1 id="hero-title">好用的 AI，<br><span>从这里开始。</span></h1>
+        <p class="hero-description">Codex 安装包、GPT 代充、微信交流。<br><a href="#community">安装和无法使用问题，免费帮忙解决。</a></p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <img src="./assets/download-art.webp" width="1200" height="900" alt="" fetchpriority="high">
+      </div>
+    </section>
+
+    <section id="downloads" class="downloads-section wrap" aria-labelledby="downloads-title">
+      <div class="section-heading download-heading">
+        <h2 id="downloads-title">Codex 下载中心</h2>
+        <button class="text-button help-trigger" type="button" data-open-help>
+          <svg class="icon" aria-hidden="true"><use href="#icon-question"></use></svg>不知道选哪个？
+        </button>
+      </div>
+      <div class="download-grid">
+        <article class="download-card windows-card" data-download="windows">
+          <div class="download-card-top">
+            <span class="platform-icon"><svg aria-hidden="true"><use href="#icon-windows-logo"></use></svg></span>
+            <span class="architecture">x64</span>
+          </div>
+          <h3>Windows 版</h3>
+          <p class="platform-description">适用于 Intel / AMD 处理器电脑</p>
+          <div class="download-tags"><span>Windows 10 / 11</span><span>MSIX 安装包</span></div>
+          <div class="download-card-bottom">
+            <div class="download-meta"><span data-file-size>约 770 MB</span><span data-file-version>26.903.8094.0</span></div>
+            <a class="button button-primary download-button" data-download-link aria-disabled="true" role="link" tabindex="-1">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download-simple"></use></svg><span>下载入口待更新</span>
+              <svg class="icon button-end-icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg>
+            </a>
+            <button class="extraction-code" type="button" data-copy-code hidden></button>
+            <div class="download-helpers">
+              <a class="text-button install-guide" data-install-guide href="#downloads" target="_blank" rel="noopener noreferrer" aria-label="查看安装教程：Windows（新窗口打开）" hidden>查看安装教程<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></a>
+              <a class="text-button install-guide" data-localization-script download aria-label="下载 Windows 中文设置脚本压缩包" hidden>中文设置脚本<svg class="icon" aria-hidden="true"><use href="#icon-download-simple"></use></svg></a>
+            </div>
+          </div>
+        </article>
+
+        <article class="download-card" data-download="macApple">
+          <div class="download-card-top">
+            <span class="platform-icon"><svg aria-hidden="true"><use href="#icon-apple-logo"></use></svg></span>
+            <span class="architecture">Apple Silicon</span>
+          </div>
+          <h3>Mac Apple 芯片版</h3>
+          <p class="platform-description">适用于 M 系列芯片的 Mac</p>
+          <div class="download-tags"><span>Apple M 系列</span><span>DMG 安装包</span></div>
+          <div class="download-card-bottom">
+            <div class="download-meta"><span data-file-size>约 624 MB</span><span data-file-version>ARM64</span></div>
+            <a class="button button-outline download-button" data-download-link aria-disabled="true" role="link" tabindex="-1">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download-simple"></use></svg><span>下载入口待更新</span>
+              <svg class="icon button-end-icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg>
+            </a>
+            <button class="extraction-code" type="button" data-copy-code hidden></button>
+            <div class="download-helpers">
+              <a class="text-button install-guide" data-install-guide href="#downloads" target="_blank" rel="noopener noreferrer" aria-label="查看安装教程：Mac Apple 芯片（新窗口打开）" hidden>查看安装教程<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></a>
+              <a class="text-button install-guide" data-localization-script download aria-label="下载 Mac 中文设置脚本压缩包，Apple 与 Intel 通用" hidden>中文设置脚本<svg class="icon" aria-hidden="true"><use href="#icon-download-simple"></use></svg></a>
+            </div>
+          </div>
+        </article>
+
+        <article class="download-card" data-download="macIntel">
+          <div class="download-card-top">
+            <span class="platform-icon"><svg aria-hidden="true"><use href="#icon-apple-logo"></use></svg></span>
+            <span class="architecture">Intel</span>
+          </div>
+          <h3>Mac Intel 芯片版</h3>
+          <p class="platform-description">适用于 Intel 处理器的 Mac</p>
+          <div class="download-tags"><span>Intel Core 系列</span><span>DMG 安装包</span></div>
+          <div class="download-card-bottom">
+            <div class="download-meta"><span data-file-size>约 611 MB</span><span data-file-version>x64</span></div>
+            <a class="button button-outline download-button" data-download-link aria-disabled="true" role="link" tabindex="-1">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download-simple"></use></svg><span>下载入口待更新</span>
+              <svg class="icon button-end-icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg>
+            </a>
+            <button class="extraction-code" type="button" data-copy-code hidden></button>
+            <div class="download-helpers">
+              <a class="text-button install-guide" data-install-guide href="#downloads" target="_blank" rel="noopener noreferrer" aria-label="查看安装教程：Mac Intel 芯片（新窗口打开）" hidden>查看安装教程<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></a>
+              <a class="text-button install-guide" data-localization-script download aria-label="下载 Mac 中文设置脚本压缩包，Apple 与 Intel 通用" hidden>中文设置脚本<svg class="icon" aria-hidden="true"><use href="#icon-download-simple"></use></svg></a>
+            </div>
+          </div>
+        </article>
+      </div>
+      <div class="download-note">
+        <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
+        <p>完整安装包，下载后按提示安装。安装软件与开通会员是两件事，使用 AI 服务仍需联网。</p>
+      </div>
+      <div class="install-faq">
+        <details>
+          <summary>Windows 安装需要进入微软商店吗？<svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></summary>
+          <p>完整的 MSIX 安装包可交给 Windows 的“应用安装程序”直接安装，通常不需要打开微软商店。缺少该组件或受到设备管理策略限制时，需要先解决对应的安装条件。</p>
+        </details>
+        <details>
+          <summary>Mac 的两种版本有什么区别？<svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></summary>
+          <p>点击屏幕左上角的苹果标志，打开“关于本机”。如果显示 Apple M 系列芯片，选择 Apple 芯片版；如果显示 Intel，选择 Intel 芯片版。下载 DMG 后打开，将应用拖入“应用程序”。</p>
+        </details>
+        <details class="language-faq">
+          <summary>如何把 Codex 界面切换成中文？<svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></summary>
+          <p>下载对应系统的“中文设置脚本”并解压。Windows 双击 .bat 文件；Mac 双击“启动中文设置.command”，M 芯片和 Intel 共用一份。先结束任务、保存文件，再按提示输入 Y，脚本会备份配置、启用内置简体中文并重新打开 Codex。</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="membership" class="membership-section wrap" aria-labelledby="membership-title">
+      <div class="membership-intro">
+        <div>
+          <h2 id="membership-title">需要会员？<br>代充也可以找添财。</h2>
+          <p>ChatGPT Plus / Pro 代充服务。<br>选好套餐，先沟通，再确认开通。</p>
+        </div>
+        <div class="service-note">
+          <svg class="icon" aria-hidden="true"><use href="#icon-chat-circle-text"></use></svg>
+          <span>套餐时长、到账时间与售后约定，<br>下单前请与添财确认。</span>
+        </div>
+      </div>
+      <div class="pricing-list" aria-label="GPT 代充套餐价格">
+        <article class="price-row" data-plan="plus">
+          <div class="plan-description"><h3>Plus</h3><p>日常问答、写作与学习</p></div>
+          <div class="plan-price"><span class="currency">¥</span><strong data-price>135</strong><span class="price-period" data-period></span></div>
+          <button class="button button-outline" type="button" data-consult="plus">咨询代充<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></button>
+        </article>
+        <article class="price-row featured-plan" data-plan="pro5">
+          <div class="plan-description"><h3>Pro <span class="plan-multiplier">5×</span></h3><p>更频繁地使用 AI 工作</p></div>
+          <div class="plan-price"><span class="currency">¥</span><strong data-price>740</strong><span class="price-period" data-period></span></div>
+          <button class="button button-primary" type="button" data-consult="pro5">咨询代充<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></button>
+        </article>
+        <article class="price-row" data-plan="pro20">
+          <div class="plan-description"><h3>Pro <span class="plan-multiplier">20×</span></h3><p>面向更高强度的使用需求</p></div>
+          <div class="plan-price"><span class="currency">¥</span><strong data-price>1250</strong><span class="price-period" data-period></span></div>
+          <button class="button button-outline" type="button" data-consult="pro20">咨询代充<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></button>
+        </article>
+      </div>
+    </section>
+
+    <section id="community" class="community-section wrap" aria-labelledby="community-title">
+      <div class="community-panel">
+        <div class="community-copy">
+          <span class="community-icon"><svg class="icon" aria-hidden="true"><use href="#icon-wechat-logo"></use></svg></span>
+          <h2 id="community-title">安装与使用问题，<br><span>免费帮忙解决。</span></h2>
+          <p>扫码加入添财AI · Codex 交流群，免费协助解决安装失败、打不开和无法使用问题，也欢迎交流 AI 工具与使用方法。</p>
+          <div class="community-topics" aria-label="交流群提供的帮助"><span>免费协助</span><span>问题排查</span><span>工具交流</span></div>
+          <div class="remote-help">
+            <h3>需要远程协助时，先安装 UU 远程</h3>
+            <p>安装后进群联系添财，说明你的电脑系统和遇到的问题，再安排远程协助。</p>
+            <a class="button button-primary" data-remote-tool-link href="#community" target="_blank" rel="noopener noreferrer" hidden>下载 UU 远程<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></a>
+          </div>
+          <a class="button button-primary" href="#community" data-group-link hidden target="_blank" rel="noopener noreferrer">加入微信群<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></a>
+          <button class="text-button wechat-id-button" type="button" data-copy-wechat hidden><span data-wechat-label></span><svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg></button>
+        </div>
+        <div class="qr-block">
+          <div class="qr-frame" data-qr-container="group">
+            <img class="qr-image" data-qr-image="group" alt="添财AI 微信交流群二维码" width="208" height="208" hidden>
+            <div class="qr-placeholder" data-qr-placeholder="group"><svg class="icon" aria-hidden="true"><use href="#icon-wechat-logo"></use></svg><strong>微信入群入口</strong><span>二维码待更新</span></div>
+          </div>
+          <p class="qr-caption" data-group-caption>入群方式更新后将在这里展示</p>
+          <p class="qr-subcaption" data-group-note>用微信扫码，加入添财AI 交流群</p>
+          <a class="text-button qr-open-link" data-group-qr-open href="#community" target="_blank" rel="noopener noreferrer" hidden>查看二维码大图<svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <a class="brand footer-brand" href="#top"><img class="brand-symbol" src="./assets/favicon.svg" width="28" height="28" alt="" aria-hidden="true"><span class="brand-name">添财<span>AI</span></span></a>
+    <p>© <span data-year>2026</span> 添财AI</p>
+    <p class="footer-disclosure">独立服务网站，与 OpenAI 无隶属关系。</p>
+  </footer>
+
+  <dialog id="help-dialog" class="modal" aria-labelledby="help-title">
+    <div class="modal-top"><span class="modal-icon"><svg class="icon" aria-hidden="true"><use href="#icon-question"></use></svg></span><button class="icon-button" type="button" data-close-dialog aria-label="关闭选择版本说明"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button></div>
+    <h2 id="help-title">找到适合你的安装包</h2>
+    <div class="device-help-block"><h3><svg class="icon" aria-hidden="true"><use href="#icon-windows-logo"></use></svg>Windows 电脑</h3><p>打开 <strong>设置 → 系统 → 系统信息</strong>，查看“系统类型”。基于 x64 的处理器选择 Windows 版；ARM 设备需要匹配的 ARM 安装包。</p></div>
+    <div class="device-help-block"><h3><svg class="icon" aria-hidden="true"><use href="#icon-apple-logo"></use></svg>Mac 电脑</h3><p>打开 <strong>苹果菜单 → 关于本机</strong>。显示 Apple M 系列，选择 Apple 芯片版；显示 Intel，选择 Intel 芯片版。</p></div>
+    <button class="button button-primary full-width" type="button" data-close-dialog>知道了</button>
+  </dialog>
+
+  <dialog id="contact-dialog" class="modal contact-modal" aria-labelledby="contact-title">
+    <div class="modal-top"><span class="modal-icon"><svg class="icon" aria-hidden="true"><use href="#icon-chat-circle-text"></use></svg></span><button class="icon-button" type="button" data-close-dialog aria-label="关闭代充咨询"><svg class="icon" aria-hidden="true"><use href="#icon-x"></use></svg></button></div>
+    <h2 id="contact-title">咨询代充</h2>
+    <p class="modal-subtitle">先确认套餐，再安排开通。</p>
+    <div class="selected-plan"><strong data-selected-plan>Plus</strong><span data-selected-price>¥135</span></div>
+    <div class="consult-contact">
+      <img class="consult-qr" data-consult-qr alt="添财AI 代充咨询微信二维码" width="172" height="172" hidden>
+      <p data-consult-note>联系方式待更新，请稍后查看。</p>
+      <a class="button button-outline full-width" href="#community" data-consult-group hidden>进群联系添财<svg class="icon" aria-hidden="true"><use href="#icon-wechat-logo"></use></svg></a>
+      <button class="button button-outline full-width" type="button" data-copy-wechat hidden><svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg><span data-wechat-label></span></button>
+    </div>
+    <button class="button button-primary full-width" type="button" data-copy-inquiry><svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg>复制套餐咨询内容</button>
+    <p class="modal-footnote">套餐时长、到账时间与售后约定，请在付款前确认。</p>
+  </dialog>
+  <div class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+  <noscript><p class="noscript-note wrap">请启用 JavaScript，以使用下载入口和微信咨询功能。</p></noscript>
+</body>
+</html>
