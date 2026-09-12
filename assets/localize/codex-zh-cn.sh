@@ -108,7 +108,7 @@ write_chinese_config() {
     fi
     # END TOML EDITOR
     if [ -f "$config_path" ] && cmp -s "$config_path" "$temporary"; then
-        printf '%s\n' '已经是简体中文，无需改动配置。'
+        printf '%s\n' '语言配置已经是 zh-CN，无需改动配置。界面是否生效，请在重开后确认。'
         return 0
     fi
     if [ -f "$config_path" ]; then
@@ -124,16 +124,19 @@ write_chinese_config() {
     fi
     mv -f "$temporary" "$config_path" || return 1
     trap - 0
-    printf '%s\n' '已设置为简体中文。'
+    printf '%s\n' '语言配置已写入：zh-CN。界面是否生效，请在重开后确认。'
 }
 
 main() {
     if [ "$(uname -s)" != Darwin ]; then printf '%s\n' '此脚本仅用于 macOS。' >&2; return 1; fi
-    printf '%s\n' '添财AI · Codex 简体中文设置'
+    printf '%s\n' '添财AI · Codex 简体中文设置 1.1'
     if ! codex_app=$(/usr/bin/osascript -e 'POSIX path of (path to application id "com.openai.codex")' 2>/dev/null); then
         printf '%s\n' '未找到 Codex，请先将 Codex 安装到“应用程序”，再运行脚本。' >&2
         return 1
     fi
+    codex_dir=${CODEX_HOME:-"$HOME/.codex"}
+    codex_version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$codex_app/Contents/Info.plist" 2>/dev/null) || codex_version='未识别'
+    printf '应用版本：%s\n应用位置：%s\n配置文件：%s\n' "$codex_version" "$codex_app" "$codex_dir/config.toml"
     printf '%s\n' '请先结束正在进行的任务并保存文件。继续后将退出并重新打开 Codex。'
     printf '输入 Y 继续，其他输入取消：'
     read -r answer || return 1
@@ -150,7 +153,16 @@ APPLESCRIPT
         return 1
     fi
     attempt=0
-    while [ "$(/usr/bin/osascript -e 'application id "com.openai.codex" is running' 2>/dev/null)" = true ]; do
+    while :; do
+        if ! codex_running=$(/usr/bin/osascript -e 'application id "com.openai.codex" is running' 2>/dev/null); then
+            printf '%s\n' '无法确认 Codex 是否已退出，配置尚未修改。请手动退出后重试。' >&2
+            return 1
+        fi
+        case "$codex_running" in
+            false) break ;;
+            true) ;;
+            *) printf '%s\n' '应用运行状态无法识别，配置尚未修改。' >&2; return 1 ;;
+        esac
         attempt=$((attempt + 1))
         if [ "$attempt" -ge 10 ]; then
             printf '%s\n' 'Codex 仍在运行，配置尚未修改。请手动退出后重新运行。' >&2
@@ -158,11 +170,19 @@ APPLESCRIPT
         fi
         sleep 1
     done
-    codex_dir=${CODEX_HOME:-"$HOME/.codex"}
     # 在子 shell 中完成写入，失败时也能返回并重新打开原应用。
     result=0
     (write_chinese_config "$codex_dir/config.toml") || result=$?
-    if ! /usr/bin/open "$codex_app"; then printf '%s\n' '请从“应用程序”手动打开 Codex。' >&2; fi
+    if /usr/bin/open "$codex_app"; then
+        printf '%s\n' '已发送打开 Codex 的请求，请检查应用界面。'
+    else
+        printf '%s\n' '请从“应用程序”手动打开 Codex。' >&2
+        result=1
+    fi
+    if [ "$result" -eq 0 ]; then
+        printf '%s\n' '如果页面仍是英文：打开 Settings > General > Language，先选 English，再选 简体中文。'
+        printf '%s\n' '如果手动切换能生效，说明翻译资源可用；请确认下次重开后是否保持中文。'
+    fi
     return "$result"
 }
 

@@ -130,45 +130,187 @@ function Set-CodexChineseConfig {
     return [pscustomobject]@{ Changed = $true; Backup = $backup }
 }
 
+function Get-CodexAppInfo {
+    param([string]$Executable, [string]$Activation = '')
+    $ErrorActionPreference = 'Stop'
+    # Only read the archive header and package identity. No application code is executed.
+    if (-not [IO.File]::Exists($Executable)) { return }
+    $Executable = [IO.Path]::GetFullPath($Executable)
+    $archivePath = Join-Path ([IO.Path]::GetDirectoryName($Executable)) 'resources\app.asar'
+    if (-not [IO.File]::Exists($archivePath)) { return }
+    $stream = $null; $reader = $null
+    try {
+        $stream = [IO.File]::Open($archivePath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+        $reader = New-Object IO.BinaryReader($stream)
+        $prefix = $reader.ReadBytes(16)
+        if ($prefix.Length -ne 16) { return }
+        $headerSize = [BitConverter]::ToUInt32($prefix, 4)
+        $jsonLength = [BitConverter]::ToUInt32($prefix, 12)
+        if ($jsonLength -lt 2 -or $jsonLength -gt 33554432 -or $headerSize -lt $jsonLength + 8 -or 8L + $headerSize -gt $stream.Length) { return }
+        $headerBytes = $reader.ReadBytes([int]$jsonLength)
+        if ($headerBytes.Length -ne $jsonLength) { return }
+        $header = [Text.Encoding]::UTF8.GetString($headerBytes) | ConvertFrom-Json
+        $entry = $header.files.'package.json'
+        if (-not $entry -or $entry.unpacked -or $entry.size -lt 2 -or $entry.size -gt 1048576) { return }
+        $position = 8L + $headerSize + [long]$entry.offset
+        if ($position -lt 8L + $headerSize -or $position + [long]$entry.size -gt $stream.Length) { return }
+        [void]$stream.Seek($position, [IO.SeekOrigin]::Begin)
+        $metadata = [Text.Encoding]::UTF8.GetString($reader.ReadBytes([int]$entry.size)) | ConvertFrom-Json
+        if ($metadata.name -cne 'openai-codex-electron') { return }
+        $assets = $header.files.webview.files.assets.files
+        $chineseEntries = @($assets.PSObject.Properties | Where-Object { $_.Name -cmatch '^zh-CN(?:-[A-Za-z0-9_-]+)?\.(?:js|json)$' -and $_.Value.size -gt 0 })
+        $nativeEntry = $header.files.'native-menu-locales'.files.'zh-CN.json'
+        return [pscustomobject]@{
+            Executable = $Executable; Activation = $Activation; Version = [string]$metadata.version
+            ChineseResource = ($chineseEntries.Count -gt 0); NativeChineseResource = ($null -ne $nativeEntry)
+        }
+    } catch { return }
+    finally { if ($reader) { $reader.Dispose() } elseif ($stream) { $stream.Dispose() } }
+}
+
+function Get-CodexGuiProcesses {
+    param([string]$Executable)
+    Get-Process -Name Codex,ChatGPT -ErrorAction SilentlyContinue | Where-Object {
+        try { $_.Path -and $_.Path.Equals($Executable, [StringComparison]::OrdinalIgnoreCase) } catch { $false }
+    }
+}
+
+function Resolve-CodexApp {
+    $apps = @{}
+    foreach ($package in @(Get-AppxPackage -Name OpenAI.Codex -ErrorAction SilentlyContinue)) {
+        try {
+            [xml]$manifest = [IO.File]::ReadAllText((Join-Path $package.InstallLocation 'AppxManifest.xml'))
+            $entry = @($manifest.Package.Applications.Application) | Where-Object { $_.Executable -match '(?:Codex|ChatGPT)\.exe$' } | Select-Object -First 1
+            if (-not $entry) { continue }
+            $app = Get-CodexAppInfo (Join-Path $package.InstallLocation ([string]$entry.Executable)) ('shell:AppsFolder\' + $package.PackageFamilyName + '!' + $entry.Id)
+            if ($app) { $apps[$app.Executable] = $app }
+        } catch { }
+    }
+    $runningPaths = @(Get-Process -Name Codex,ChatGPT -ErrorAction SilentlyContinue | ForEach-Object { try { if ($_.Path) { $_.Path } } catch { } } | Sort-Object -Unique)
+    $paths = @($runningPaths)
+    foreach ($root in @((Join-Path $env:LOCALAPPDATA 'Programs\Codex'), (Join-Path $env:ProgramFiles 'Codex'))) {
+        $paths += Join-Path $root 'ChatGPT.exe'
+        $paths += Join-Path $root 'Codex.exe'
+    }
+    foreach ($path in @($paths | Sort-Object -Unique)) {
+        if ($apps.ContainsKey($path)) { continue }
+        $app = Get-CodexAppInfo $path
+        if ($app) { $apps[$app.Executable] = $app }
+    }
+    $running = @($apps.Values | Where-Object { $runningPaths -contains $_.Executable })
+    if ($running.Count -eq 1) { return $running[0] }
+    $choices = @($apps.Values | Sort-Object Executable)
+    if ($choices.Count -eq 1) { return $choices[0] }
+    if ($choices.Count -gt 1) {
+        Write-Host '发现多份 Codex，请选择要设置中文的应用：'
+        for ($i = 0; $i -lt $choices.Count; $i++) { Write-Host ('{0}. {1}  {2}' -f ($i + 1), $choices[$i].Version, $choices[$i].Executable) }
+        $number = 0
+        if (-not [int]::TryParse((Read-Host '输入编号'), [ref]$number) -or $number -lt 1 -or $number -gt $choices.Count) { throw '未选择有效的 Codex，配置尚未修改。' }
+        return $choices[$number - 1]
+    }
+    $path = (Read-Host '未自动找到 Codex。请粘贴 Codex.exe 或 ChatGPT.exe 的完整路径，回车取消').Trim().Trim('"')
+    if ($path) {
+        $app = Get-CodexAppInfo $path
+        if ($app) { return $app }
+    }
+    throw '未识别到 Codex 桌面应用，配置尚未修改。请先安装或打开 Codex，再运行脚本。'
+}
+
+function Wait-CodexGuiState {
+    param([string]$Executable, [bool]$Running, [int]$Seconds = 10)
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    do {
+        $present = @(Get-CodexGuiProcesses $Executable).Count -gt 0
+        if ($present -eq $Running) { return $true }
+        Start-Sleep -Milliseconds 250
+    } while ($timer.Elapsed.TotalSeconds -lt $Seconds)
+    return $false
+}
+
 function Invoke-CodexChineseSetup {
     $ErrorActionPreference = 'Stop'
-    $reopen = $false; $activation = ''
+    $reopen = $false; $app = $null; $configFile = ''; $phase = '检查安装'; $written = $false; $exitCode = 0
+    $report = New-Object 'System.Collections.Generic.List[string]'
+    $report.Add('添财AI · Codex 中文设置 1.1')
+    $report.Add('时间：' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
     try {
-        Write-Host '添财AI · Codex 简体中文设置' -ForegroundColor Green
-        $package = Get-AppxPackage -Name OpenAI.Codex | Sort-Object Version -Descending | Select-Object -First 1
-        if (-not $package) { throw '未找到 Windows 版 Codex。请先安装官网 / MSIX 版本，再运行脚本。' }
-        [xml]$manifest = [IO.File]::ReadAllText((Join-Path $package.InstallLocation 'AppxManifest.xml'))
-        $entry = @($manifest.Package.Applications.Application) | Where-Object { $_.Executable -match '(?:Codex|ChatGPT)\.exe$' } | Select-Object -First 1
-        if (-not $entry) { throw '无法识别 Codex 的启动入口，未修改任何配置。' }
-        $executable = [IO.Path]::GetFullPath((Join-Path $package.InstallLocation ([string]$entry.Executable)))
-        $activation = 'shell:AppsFolder\' + $package.PackageFamilyName + '!' + $entry.Id
+        Write-Host '添财AI · Codex 简体中文设置 1.1' -ForegroundColor Green
+        $app = Resolve-CodexApp
+        Write-Host ('应用版本：' + $app.Version)
+        Write-Host ('启动文件：' + $app.Executable)
+        $report.Add('应用版本：' + $app.Version)
+        $report.Add('启动文件：' + $app.Executable)
+        $report.Add('内置中文界面资源条目：' + $app.ChineseResource)
+        $report.Add('内置中文菜单资源条目：' + $app.NativeChineseResource)
+        $report.Add('运行时国际化开关：未检测；资源存在不代表界面已加载。')
+        if (-not $app.ChineseResource) { throw '未识别到内置中文界面资源，配置尚未修改。请更新 Codex 或提供本次诊断记录。' }
         $codexDirectory = if ([string]::IsNullOrWhiteSpace($env:CODEX_HOME)) { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.codex' } else { $env:CODEX_HOME }
-        $configFile = Join-Path $codexDirectory 'config.toml'
+        $configFile = [IO.Path]::GetFullPath((Join-Path $codexDirectory 'config.toml'))
+        Write-Host ('配置文件：' + $configFile)
+        $report.Add('配置文件：' + $configFile)
         if ([IO.File]::Exists($configFile)) { [void](ConvertTo-CodexChineseConfig ([IO.File]::ReadAllText($configFile, [Text.Encoding]::UTF8))) }
-        Write-Host '请先结束正在进行的任务并保存文件。继续后将完全关闭并重新打开 Codex。'
-        if ((Read-Host '输入 Y 继续，其他输入取消') -notmatch '^[Yy]$') { Write-Host '已取消。'; return 0 }
+        Write-Host '请先结束任务并保存文件。继续后将关闭上面这份 Codex；残留应用进程会被结束，然后重新打开。'
+        if ((Read-Host '输入 Y 继续，其他输入取消') -notmatch '^[Yy]$') { Write-Host '已取消。'; $report.Add('结果：用户取消'); return 0 }
+        $phase = '退出应用'
         # 只处理注册 Codex 应用的 GUI 路径，不按进程名批量结束 CLI 或其他应用。
-        $processes = @(Get-Process -Name Codex,ChatGPT -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.Equals($executable, [StringComparison]::OrdinalIgnoreCase) })
+        $processes = @(Get-CodexGuiProcesses $app.Executable)
         $reopen = $true
-        foreach ($process in $processes) { if ($process.MainWindowHandle -ne 0) { [void]$process.CloseMainWindow() } }
-        if ($processes.Count -gt 0) { Start-Sleep -Seconds 2 }
-        Get-Process -Name Codex,ChatGPT -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.Equals($executable, [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force -ErrorAction SilentlyContinue
-        if (@(Get-Process -Name Codex,ChatGPT -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.Equals($executable, [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) {
-            throw 'Codex 尚未完全退出。请手动退出后重新运行，配置尚未修改。'
+        foreach ($process in $processes) {
+            try { if ($process.MainWindowHandle -ne 0) { [void]$process.CloseMainWindow() } } catch { }
         }
+        if (-not (Wait-CodexGuiState $app.Executable $false 8)) {
+            Get-CodexGuiProcesses $app.Executable | Stop-Process -Force -ErrorAction SilentlyContinue
+            if (-not (Wait-CodexGuiState $app.Executable $false 8)) {
+                $reopen = $false
+                throw 'Codex 尚未完全退出。请手动退出后重新运行，配置尚未修改。'
+            }
+        }
+        Start-Sleep -Milliseconds 500
+        if (@(Get-CodexGuiProcesses $app.Executable).Count -gt 0) { $reopen = $false; throw 'Codex 又被打开了，配置尚未修改。请关闭其他启动程序后重试。' }
+        $phase = '写入配置'
         $result = Set-CodexChineseConfig $configFile
-        Write-Host '已设置为简体中文。' -ForegroundColor Green
-        if ($result.Backup) { Write-Host ('配置备份：' + $result.Backup) }
-        return 0
+        $written = $true
+        Write-Host '语言配置已写入：zh-CN。界面是否生效，请在应用重新打开后确认。' -ForegroundColor Green
+        $report.Add('配置写入：成功（zh-CN）')
+        if ($result.Backup) { Write-Host ('配置备份：' + $result.Backup); $report.Add('配置备份：' + $result.Backup) }
     } catch {
         Write-Host ('未完成：' + $_.Exception.Message) -ForegroundColor Red
-        return 1
+        $report.Add('失败阶段：' + $phase)
+        $report.Add('错误：' + $_.Exception.Message)
+        $exitCode = 1
     } finally {
-        if ($reopen -and $activation) {
-            try { Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') -ArgumentList $activation; Write-Host '已发起重新打开 Codex。' }
-            catch { Write-Host '请从开始菜单手动打开 Codex。' }
+        if ($reopen -and $app) {
+            try {
+                if ($app.Activation) { Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') -ArgumentList $app.Activation }
+                else { Start-Process -FilePath $app.Executable -WorkingDirectory ([IO.Path]::GetDirectoryName($app.Executable)) -ArgumentList '--lang=zh-CN' }
+                if (Wait-CodexGuiState $app.Executable $true 12) {
+                    Write-Host '已检测到同一份 Codex 的进程重新启动。'
+                    $report.Add('应用重开：已检测到进程；未验证界面语言')
+                } else {
+                    Write-Host '暂未检测到应用进程，请手动打开上面这份 Codex。'
+                    $report.Add('应用重开：超时，需手动打开')
+                    $exitCode = 1
+                }
+            } catch { Write-Host '请手动打开上面这份 Codex。'; $report.Add('应用重开失败：' + $_.Exception.Message); $exitCode = 1 }
         }
+        if ($written) {
+            try {
+                $current = [IO.File]::ReadAllText($configFile, [Text.Encoding]::UTF8)
+                if ((ConvertTo-CodexChineseConfig $current) -ceq $current) { $report.Add('重开后配置检查：仍为 zh-CN') }
+                else { $report.Add('重开后配置检查：语言字段发生变化'); Write-Host '注意：应用重开后语言配置发生变化，请查看诊断记录。'; $exitCode = 1 }
+            } catch { $report.Add('重开后配置检查：无法读取或解析'); $exitCode = 1 }
+            Write-Host '如果页面仍是英文：打开 Settings > General > Language，先选 English，再选 简体中文。'
+            Write-Host '如果手动切换能生效，说明翻译资源可用；请确认下次重开后是否保持中文。'
+        }
+        try {
+            $reportDir = Join-Path $env:LOCALAPPDATA 'TiancaiAI\CodexLocale'
+            [void][IO.Directory]::CreateDirectory($reportDir)
+            $reportPath = Join-Path $reportDir ('diagnostic-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0, 6) + '.txt')
+            [IO.File]::WriteAllLines($reportPath, $report, (New-Object Text.UTF8Encoding($true)))
+            Write-Host ('诊断记录：' + $reportPath)
+        } catch { Write-Host '无法保存诊断记录，请保留本窗口提示。' }
     }
+    return $exitCode
 }
 
 if ($MyInvocation.InvocationName -ne '.') { exit (Invoke-CodexChineseSetup) }

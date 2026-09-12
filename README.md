@@ -52,9 +52,13 @@ groupQr: "./assets/wechat-group.jpg",
 - Windows：解压 `assets/localize/codex-zh-cn-windows.zip`，双击 `codex-zh-cn.bat`。
 - Mac：解压 `assets/localize/codex-zh-cn-mac.zip`，双击“启动中文设置.command”；也可以在终端运行同目录的 `codex-zh-cn.sh`。M 系列与 Intel 通用，不需要额外安装开发工具。
 
-先结束任务并保存文件。脚本在用户输入 Y 后退出 Codex，备份原配置，将 `config.toml` 中 `[desktop]` 的 `localeOverride` 设置为 `"zh-CN"`，然后重新打开应用。已经是中文时不会重复添加字段。完整用法、备份恢复方法和适用范围见压缩包内的“使用说明.txt”，每个包只介绍对应系统的操作。
+先结束任务并保存文件。脚本在用户输入 Y 后退出 Codex，备份原配置，将 `config.toml` 中 `[desktop]` 的 `localeOverride` 设置为 `"zh-CN"`，然后重新打开应用。配置已是 `zh-CN` 时不会重复添加字段。完整用法、备份恢复方法和适用范围见压缩包内的“使用说明.txt”，每个包只介绍对应系统的操作。
 
-配置编辑已通过 22 组独立样例验证，Windows 文件写入与备份使用 Windows PowerShell 5.1 验证。Mac 的 shell 语法和配置处理逻辑已检查，尚未在真实 Mac 上验证双击、退出和重开流程。测试没有修改当前用户的实际 Codex 配置或重启应用。
+1.1 版会显示应用版本、应用位置和配置路径。Windows 优先识别正在运行的 Codex，兼容 MSIX 和含原始应用资源的独立目录；多份安装时让用户选择。只对选定应用路径的 GUI 进程执行退出，等待完全退出后才写入配置，并尝试重新打开同一份应用。Windows 还会只读检查应用身份和中文资源条目，在 `%LOCALAPPDATA%\TiancaiAI\CodexLocale` 保存诊断结果，不记录完整配置、聊天或账号密钥。Mac 无法确认退出状态时停止写入。
+
+“配置已写入”和“检测到进程重开”不代表已验证界面语言。若设置显示简体中文、界面仍是英文，先在 `Settings > General > Language` 选择 `English`，再选“简体中文”，并检查下次重开是否保持。手动切换能生效说明翻译可用；仅凭这一现象无法确定是启动、状态刷新还是运行时国际化开关的问题。脚本不修改 `app.asar`、应用可执行文件或用户数据目录。
+
+配置编辑已通过 22 组独立样例验证，Windows 文件写入与备份使用 Windows PowerShell 5.1 验证。Windows 应用识别、退出等待、取消、重开失败和配置被改回等分支使用模拟应用与进程验证；没有运行这些应用。Mac 的 shell 语法和配置处理逻辑已检查。两个系统的真实应用退出和重开流程均尚未实机验证，测试没有修改当前用户的实际 Codex 配置或重启应用。
 
 两份说明源文件分别保存在 `assets/localize/使用说明-Windows.txt` 和 `assets/localize/使用说明-Mac.txt`。打包时，将对应系统的说明放进 ZIP，并命名为“使用说明.txt”。更新脚本或说明后，请同步重新打包对应 ZIP；页面下载的是 ZIP 文件。
 
