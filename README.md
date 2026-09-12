@@ -52,11 +52,11 @@ groupQr: "./assets/wechat-group.jpg",
 - Windows：解压 `assets/localize/codex-zh-cn-windows.zip`，双击 `codex-zh-cn.bat`。
 - Mac：解压 `assets/localize/codex-zh-cn-mac.zip`，双击“启动中文设置.command”；也可以在终端运行同目录的 `codex-zh-cn.sh`。M 系列与 Intel 通用，不需要额外安装开发工具。
 
-先结束任务并保存文件。脚本在用户输入 Y 后退出 Codex，备份原配置，将 `config.toml` 中 `[desktop]` 的 `localeOverride` 设置为 `"zh-CN"`，然后重新打开应用。已经是中文时不会重复添加字段。完整用法、备份恢复方法和适用范围见压缩包内的“使用说明.txt”。
+先结束任务并保存文件。脚本在用户输入 Y 后退出 Codex，备份原配置，将 `config.toml` 中 `[desktop]` 的 `localeOverride` 设置为 `"zh-CN"`，然后重新打开应用。已经是中文时不会重复添加字段。完整用法、备份恢复方法和适用范围见压缩包内的“使用说明.txt”，每个包只介绍对应系统的操作。
 
 配置编辑已通过 22 组独立样例验证，Windows 文件写入与备份使用 Windows PowerShell 5.1 验证。Mac 的 shell 语法和配置处理逻辑已检查，尚未在真实 Mac 上验证双击、退出和重开流程。测试没有修改当前用户的实际 Codex 配置或重启应用。
 
-更新脚本源码后，请同步重新打包两个 ZIP；页面下载的是 ZIP 文件。
+两份说明源文件分别保存在 `assets/localize/使用说明-Windows.txt` 和 `assets/localize/使用说明-Mac.txt`。打包时，将对应系统的说明放进 ZIP，并命名为“使用说明.txt”。更新脚本或说明后，请同步重新打包对应 ZIP；页面下载的是 ZIP 文件。
 
 ## 本地查看
 
