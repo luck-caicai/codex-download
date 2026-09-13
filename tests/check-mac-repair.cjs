@@ -4,7 +4,7 @@ const fs = require('node:fs'), os = require('node:os'), path = require('node:pat
 const child = require('node:child_process'), assert = require('node:assert/strict'), crypto = require('node:crypto');
 const lib = require('../assets/localize/repair-i18n-mac.cjs');
 const core = require('../assets/localize/repair-i18n.cjs');
-const work = fs.mkdtempSync(path.join(os.tmpdir(), 'tiancai-mac-check-'));
+const work = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'tiancai-mac-check-')));
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 const checks = [];
 function check(name, body) { body(); checks.push(name); }
