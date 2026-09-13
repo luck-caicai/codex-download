@@ -183,9 +183,9 @@ async function closeApps(source, base) {
 }
 
 function writeConfig(configPath) {
-  const source = fs.readFileSync(path.join(__dirname, 'codex-zh-cn.sh'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '修复中文显示.command'), 'utf8');
   const parts = source.split('# MAIN ENTRY');
-  check(parts.length === 2, '普通设置脚本不完整，请重新解压整个 Mac 压缩包');
+  check(parts.length === 2, '修复入口不完整，请重新解压整个 Mac 压缩包');
   return run('/bin/sh', ['-s', '--', configPath], { input: parts[0] + '\nwrite_chinese_config "$1"\n' });
 }
 const quote = value => "'" + value.replace(/'/g, "'\\''") + "'";
@@ -217,7 +217,7 @@ async function main(app) {
   const home = os.homedir(), support = path.join(home, 'Library', 'Application Support', 'TiancaiAI');
   const logRoot = path.join(support, 'CodexLocale');
   fs.mkdirSync(logRoot, { recursive: true });
-  const report = ['添财AI · Mac 中文显示修复 2.0', '时间：' + new Date().toISOString()];
+  const report = ['添财AI · Mac 中文显示修复 2.1', '时间：' + new Date().toISOString()];
   const log = text => { console.log(text); report.push(text); };
   let phase = '检查原安装', source, build, restore = false;
   try {

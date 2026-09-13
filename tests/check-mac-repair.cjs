@@ -131,7 +131,7 @@ function nativeCheck(app) {
   const home = path.join(work, 'native-user'), codexHome = path.join(home, '.codex');
   fs.mkdirSync(path.join(home, 'Desktop'), { recursive: true }); fs.mkdirSync(codexHome);
   fs.writeFileSync(path.join(codexHome, 'config.toml'), 'model = "fixture-model"\n[desktop]\nlocaleOverride = "en-US"\n');
-  const result = realSpawn('/bin/sh', [path.join(__dirname, '../assets/localize/repair-i18n-mac.sh'), app], {
+  const result = realSpawn('/bin/sh', [path.join(__dirname, '../assets/localize/修复中文显示.command'), app], {
     input: 'Y\n', encoding: 'utf8', timeout: 600000, maxBuffer: 4 * 1024 * 1024,
     env: { ...process.env, HOME: home, CODEX_HOME: codexHome }
   });
