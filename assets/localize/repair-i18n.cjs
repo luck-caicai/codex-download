@@ -88,8 +88,8 @@ function inspectRuntime(root, headerHash) {
   return { mode: '保留完整性校验并更新副本哈希', patches };
 }
 
-function plan(root) {
-  const archive = readArchive(path.join(root, 'resources', 'app.asar'));
+function planArchive(file) {
+  const archive = readArchive(file);
   try {
     const metadata = JSON.parse(archive.read('package.json'));
     requireCondition(metadata.name === 'openai-codex-electron', '所选目录不是支持的 Codex 桌面应用');
@@ -130,9 +130,33 @@ function plan(root) {
     const nextHeader = Buffer.from(JSON.stringify(archive.header));
     requireCondition(nextHeader.length === archive.bytes.length, 'ASAR 文件头格式发生变化，停止自动修补');
     const oldHash = sha(archive.bytes), newHash = sha(nextHeader);
-    const runtime = inspectRuntime(root, oldHash);
-    return { version: metadata.version, chinese, changes, nextHeader, oldHash, newHash, runtime };
+    return { version: metadata.version, chinese, changes, nextHeader, oldHash, newHash };
   } finally { archive.close(); }
+}
+
+function plan(root) {
+  const result = planArchive(path.join(root, 'resources', 'app.asar'));
+  return { ...result, runtime: inspectRuntime(root, result.oldHash) };
+}
+
+function writeArchive(asar, result) {
+  const before = readArchive(asar);
+  try { requireCondition(sha(before.bytes) === result.oldHash, '写入前应用资源已变化，请重新运行'); }
+  finally { before.close(); }
+  const fd = fs.openSync(asar, 'r+');
+  try {
+    for (const item of result.changes) requireCondition(fs.writeSync(fd, item.content, 0, item.content.length, item.offset) === item.content.length, '脚本写入不完整');
+    requireCondition(fs.writeSync(fd, result.nextHeader, 0, result.nextHeader.length, 16) === result.nextHeader.length, '文件头写入不完整');
+    fs.fsyncSync(fd);
+  } finally { fs.closeSync(fd); }
+  const verified = readArchive(asar);
+  try {
+    requireCondition(sha(verified.bytes) === result.newHash, '修补后的文件头校验失败');
+    for (const item of result.changes) {
+      const content = verified.read(item.name), entry = verified.entries.get(item.name);
+      requireCondition(content.equals(item.content) && sha(content) === entry.integrity.hash, '修补后文件校验失败：' + item.name);
+    }
+  } finally { verified.close(); }
 }
 
 function patchCopy(root) {
@@ -145,12 +169,7 @@ function patchCopy(root) {
   requireCondition(result.oldHash === marker.sourceHeaderHash, '复制后的应用资源与检查时不一致，请重新运行');
   const asar = path.join(realRoot, 'resources', 'app.asar');
   // The source installation is the recovery copy. Failed builds receive no shortcut.
-  const fd = fs.openSync(asar, 'r+');
-  try {
-    for (const item of result.changes) requireCondition(fs.writeSync(fd, item.content, 0, item.content.length, item.offset) === item.content.length, '脚本写入不完整');
-    requireCondition(fs.writeSync(fd, result.nextHeader, 0, result.nextHeader.length, 16) === result.nextHeader.length, '文件头写入不完整');
-    fs.fsyncSync(fd);
-  } finally { fs.closeSync(fd); }
+  writeArchive(asar, result);
   for (const item of result.runtime.patches) {
     const hash = item.upper ? result.newHash.toUpperCase() : result.newHash;
     const bytes = Buffer.from(hash, item.encoding);
@@ -158,14 +177,6 @@ function patchCopy(root) {
     try { requireCondition(fs.writeSync(fd, bytes, 0, bytes.length, item.offset) === bytes.length, '可执行文件校验值写入失败'); fs.fsyncSync(fd); }
     finally { fs.closeSync(fd); }
   }
-  const verified = readArchive(asar);
-  try {
-    requireCondition(sha(verified.bytes) === result.newHash, '修补后的文件头校验失败');
-    for (const item of result.changes) {
-      const content = verified.read(item.name), entry = verified.entries.get(item.name);
-      requireCondition(content.equals(item.content) && sha(content) === entry.integrity.hash, '修补后文件校验失败：' + item.name);
-    }
-  } finally { verified.close(); }
   for (const item of result.runtime.patches) {
     const exe = fs.readFileSync(path.join(realRoot, item.name));
     requireCondition(exe.subarray(item.offset, item.offset + item.length).toString(item.encoding).toLowerCase() === result.newHash, '应用完整性哈希复核失败');
@@ -177,7 +188,7 @@ function patchCopy(root) {
 function summary(result) {
   return { version: result.version, chineseResources: result.chinese.length, patchedGetters: result.changes.reduce((n, x) => n + x.count, 0), files: result.changes.map(x => x.name), headerHash: result.oldHash, newHeaderHash: result.newHash, integrity: result.runtime.mode };
 }
-module.exports = { readArchive, patchSource, inspectRuntime, plan, patchCopy, summary };
+module.exports = { readArchive, patchSource, planArchive, writeArchive, inspectRuntime, plan, patchCopy, summary };
 if (require.main === module) {
   try {
     const [mode, root] = process.argv.slice(2);

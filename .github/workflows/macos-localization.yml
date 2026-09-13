@@ -1,0 +1,34 @@
+name: Mac localization repair
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/**']
+    paths:
+      - 'assets/localize/**'
+      - 'tests/check-mac-repair.cjs'
+      - '.github/workflows/macos-localization.yml'
+permissions:
+  contents: read
+jobs:
+  repair:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download fixed official release for an isolated test
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          curl --fail --location --retry 2 --output "$RUNNER_TEMP/ChatGPT.zip" "https://persistent.oaistatic.com/codex-app-prod/ChatGPT-darwin-${ARCH}-26.908.40834.zip"
+          ditto -x -k "$RUNNER_TEMP/ChatGPT.zip" "$RUNNER_TEMP/original"
+      - name: Check source, repair a copy, verify signing and launch
+        run: |
+          node tests/check-mac-repair.cjs --app "$RUNNER_TEMP/original/ChatGPT.app"
