@@ -52,12 +52,13 @@ groupQr: "./assets/wechat-group.jpg",
 - Windows：解压 `assets/localize/codex-zh-cn-windows.zip`，双击 `codex-zh-cn.bat`。
 - Windows 已设置中文但文字仍是英文：完整解压同一个包，双击新增的“修复中文显示.bat”，按提示创建修复副本；以后使用桌面上的“Codex 中文修复版（添财AI）”。保留包内 `codex-zh-cn.bat` 和 `repair-i18n.cjs`，工具会自动调用它们。
 - Mac：解压 `assets/localize/codex-zh-cn-mac.zip`，双击“启动中文设置.command”；也可以在终端运行同目录的 `codex-zh-cn.sh`。M 系列与 Intel 通用，不需要额外安装开发工具。
+- Mac 已设置中文但文字仍是英文：完整解压同一个包，双击“修复中文显示.command”，按提示创建并签名修复副本。以后使用桌面的“Codex 中文修复版（添财AI）.command”。所有 `.sh`、`.cjs` 文件需要保留在解压目录。
 
 先结束任务并保存文件。脚本在用户输入 Y 后退出 Codex，备份原配置，将 `config.toml` 中 `[desktop]` 的 `localeOverride` 设置为 `"zh-CN"`，然后重新打开应用。配置已是 `zh-CN` 时不会重复添加字段。完整用法、备份恢复方法和适用范围见压缩包内的“使用说明.txt”，每个包只介绍对应系统的操作。
 
 1.1 版会显示应用版本、应用位置和配置路径。Windows 优先识别正在运行的 Codex，兼容 MSIX 和含原始应用资源的独立目录；多份安装时让用户选择。只对选定应用路径的 GUI 进程执行退出，等待完全退出后才写入配置，并尝试重新打开同一份应用。Windows 还会只读检查应用身份和中文资源条目，在 `%LOCALAPPDATA%\TiancaiAI\CodexLocale` 保存诊断结果，不记录完整配置、聊天或账号密钥。Mac 无法确认退出状态时停止写入。
 
-“配置已写入”和“检测到进程重开”不代表已验证界面语言。普通设置脚本不修改应用文件。若设置显示简体中文、界面仍是英文，可在 `Settings > General > Language` 选择 `English`，再选“简体中文”，并检查下次重开是否保持；Windows 也可使用本包内的显示修复工具。
+“配置已写入”和“检测到进程重开”不代表已验证界面语言。普通设置脚本不修改应用文件。若设置显示简体中文、界面仍是英文，可在 `Settings > General > Language` 选择 `English`，再选“简体中文”，并检查下次重开是否保持；Windows 和 Mac 的包内也分别提供显示修复入口。
 
 ### Windows 中文显示修复 2.0
 
@@ -71,7 +72,21 @@ groupQr: "./assets/wechat-group.jpg",
 
 同版本实际安装文件的测试副本已完成 5,466 个文件的复制和修补，兼容长路径；原安装的 ASAR、EXE、DLL 哈希保持一致，副本 EXE / DLL 字节未变，EXE 签名仍有效。此项验证使用独立配置文件，进程操作与桌面快捷方式创建使用模拟实现，没有启动或关闭当前 Codex。
 
-配置编辑已通过 22 组独立样例验证，Windows 文件写入与备份使用 Windows PowerShell 5.1 验证。Windows 应用识别、退出等待、取消、重开失败和配置被改回等分支使用模拟应用与进程验证；没有运行这些应用。Mac 的 shell 语法和配置处理逻辑已检查。两个系统的真实应用退出和重开流程均尚未实机验证，测试没有修改当前用户的实际 Codex 配置或重启应用。
+普通设置入口的配置编辑已通过 22 组独立样例验证，Windows 文件写入与备份使用 Windows PowerShell 5.1 验证。Windows 应用识别、退出等待、取消、重开失败和配置被改回等分支使用模拟应用与进程验证；没有运行这些应用。Mac 普通设置入口的 shell 语法和配置处理逻辑已检查。以上本地检查没有修改当前用户的实际 Codex 配置或重启应用；Mac 显示修复入口的原生环境验证见下方。
+
+### Mac 中文显示修复 2.0
+
+Apple 芯片和 Intel 共用 `repair-i18n-mac.sh`，提供“修复中文显示.command”双击入口。脚本识别已经安装的原版 `Codex.app` 或 `ChatGPT.app`，使用其内置 Node.js。存在多个安装时由用户选择；不会自动下载开发环境。已检查两个架构的官方 `26.908.40834` 安装包，两种架构的资源归档均支持相同的两处翻译开关修补。
+
+副本保存在 `~/Library/Application Support/TiancaiAI/CodexChinese/build-时间-标识/`，运行前检查并显示空间需求。复制保留应用内部的框架链接，拒绝指向外部的链接；原安装不写入。修补复用 Windows 版的归档编辑逻辑，更新文件及分块哈希，同时更新 Mac `Info.plist` 中的 `ElectronAsarIntegrity`。保留运行时校验开关的原状态；开启额外框架摘要校验的版本当前会停止处理，不会关闭校验功能。
+
+Mac 副本的主应用采用本机临时签名，不再具有 OpenAI 原厂签名。保留嵌套代码的原始签名，为主应用保留 JIT 等普通权限，移除依赖厂商签名的推送、应用组、共享钥匙串等权限，并允许主应用加载未修改的原厂框架。脚本随后执行 `codesign --verify --deep --strict`。这不等于原厂公证；用户可能需要重新登录或授权，部分系统集成功能可能受影响，异常时使用原版。
+
+副本使用独立 `CodexChinese/UserData`，显式保留原来的 `CODEX_HOME`。脚本在用户确认后请求原版及本工具旧副本正常退出，确认退出才备份和修改语言配置。无法退出时停止，不强制结束任务。创建桌面 `.command` 启动入口；桌面不可写时，保留在副本父目录，并显示路径。诊断位于 `~/Library/Application Support/TiancaiAI/CodexLocale/repair-mac-*.txt`。
+
+验证脚本为 `tests/check-mac-repair.cjs`，包括资源哈希、原安装保留、未知摘要拒绝、签名权限转换和特殊字符路径等 13 项隔离检查。Apple 芯片与 Intel 的 macOS 15 原生环境均已通过[验证运行](https://github.com/luck-caicai/codex-download/actions/runs/34732557144)：使用固定官方 `26.908.40834` 版本完成复制、签名、配置备份和实际启动，并发送正常退出请求。每个架构 14 项检查通过，使用临时测试配置，不使用真实账号。界面文字和完整系统功能仍需在实际使用电脑上确认。
+
+参考：[Electron 的 Mac 资源完整性校验](https://www.electronjs.org/docs/latest/tutorial/asar-integrity)、[Apple 代码签名说明](https://developer.apple.com/library/archive/technotes/tn2206/)。
 
 两份说明源文件分别保存在 `assets/localize/使用说明-Windows.txt` 和 `assets/localize/使用说明-Mac.txt`。打包时，将对应系统的说明放进 ZIP，并命名为“使用说明.txt”。更新脚本或说明后，请同步重新打包对应 ZIP；页面下载的是 ZIP 文件。
 
