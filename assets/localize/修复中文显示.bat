@@ -8,15 +8,7 @@ echo.
 pause
 exit /b %TC_CODEX_RESULT%
 # POWERSHELL-BEGIN
-# 添财AI · Windows 中文显示修复 2.0：使用独立应用副本，保留原安装。
-
-function ConvertTo-CodexExtendedPath {
-    param([string]$Path)
-    $full = [IO.Path]::GetFullPath($Path)
-    if ($full.StartsWith('\\?\')) { return $full }
-    if ($full.StartsWith('\\')) { return '\\?\UNC\' + $full.Substring(2) }
-    return '\\?\' + $full
-}
+# 添财AI · Windows 中文显示修复 2.1：使用独立应用副本，保留原安装。
 
 function Copy-CodexNodeRuntime {
     param([string]$Source)
@@ -39,10 +31,12 @@ function Copy-CodexNodeRuntime {
 }
 
 function Invoke-I18nHelper {
-    param([string]$Node, [string]$Helper, [string]$Mode, [string]$AppRoot)
+    param([string]$Node, [string]$Helper, [string]$Mode, [string]$AppRoot, [string]$Destination)
     [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
-    $lines = @(& $Node $Helper $Mode $AppRoot 2>&1)
-    if ($LASTEXITCODE -ne 0) { throw ('国际化检查 / 修复失败：' + ($lines -join "`n")) }
+    $helperArgs = @($Helper, $Mode, $AppRoot)
+    if ($Destination) { $helperArgs += $Destination }
+    $lines = @(& $Node @helperArgs 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw ('应用处理失败：' + ($lines -join "`n")) }
     return (($lines -join "`n") | ConvertFrom-Json)
 }
 
@@ -81,8 +75,10 @@ function Invoke-CodexChineseRepair {
     $ErrorActionPreference = 'Stop'
     $phase = '读取工具'; $copyRoot = ''; $sourceApp = $null; $restoreOriginal = $false; $exitCode = 0; $runtime = $null
     $report = New-Object 'System.Collections.Generic.List[string]'
-    $report.Add('添财AI · Windows 中文显示修复 2.0')
+    $report.Add('添财AI · Windows 中文显示修复 2.1')
     $report.Add('时间：' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
+    $report.Add('Windows 版本：' + [Environment]::OSVersion.VersionString)
+    $report.Add('PowerShell 版本：' + $PSVersionTable.PSVersion.ToString())
     try {
         $toolRoot = [IO.Path]::GetDirectoryName($env:TC_CODEX_REPAIR_SCRIPT)
         $baseScript = Join-Path $toolRoot 'codex-zh-cn.bat'
@@ -91,7 +87,7 @@ function Invoke-CodexChineseRepair {
         $baseCode = ([IO.File]::ReadAllText($baseScript, [Text.Encoding]::UTF8) -split '(?m)^# POWERSHELL-BEGIN\r?$', 2)[1]
         # Dot-sourcing loads only the shared functions; it does not run the basic setup.
         . ([ScriptBlock]::Create($baseCode))
-        Write-Host '添财AI · Windows 中文显示修复 2.0' -ForegroundColor Green
+        Write-Host '添财AI · Windows 中文显示修复 2.1' -ForegroundColor Green
         $phase = '检查原安装'
         $sourceApp = Resolve-CodexApp
         $sourceRoot = [IO.Path]::GetDirectoryName($sourceApp.Executable)
@@ -108,9 +104,11 @@ function Invoke-CodexChineseRepair {
         Write-Host ('原应用：' + $sourceApp.Executable)
         Write-Host ('应用版本：' + $inspection.version)
         Write-Host ('已识别内置中文资源和 ' + $inspection.patchedGetters + ' 处国际化开关。')
-        $sourceItems = @(Get-ChildItem -LiteralPath (ConvertTo-CodexExtendedPath $sourceRoot) -Recurse -Force -ErrorAction Stop)
-        if (@($sourceItems | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }).Count) { throw '应用目录含有链接，暂不支持自动复制。原安装未改动。' }
-        $bytes = ($sourceItems | Where-Object { -not $_.PSIsContainer } | Measure-Object Length -Sum).Sum
+        $phase = '统计原应用文件'
+        $sourceTree = Invoke-I18nHelper $node $helper 'inspect-tree' $sourceRoot
+        $bytes = $sourceTree.bytes
+        if ($sourceTree.files -lt 1) { throw '原应用目录中没有文件，停止复制。' }
+        $report.Add('原应用文件数：' + $sourceTree.files + '；总字节数：' + $bytes)
         $baseRoot = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'TiancaiAI\CodexChinese'))
         $disk = New-Object IO.DriveInfo([IO.Path]::GetPathRoot($baseRoot))
         if ($disk.AvailableFreeSpace -lt $bytes + 104857600) { throw '磁盘空间不足，需要额外保存一份 Codex 应用。' }
@@ -127,13 +125,14 @@ function Invoke-CodexChineseRepair {
         $copyRoot = [IO.Path]::GetFullPath((Join-Path $baseRoot ('build-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0, 6))))
         if (-not $copyRoot.StartsWith($baseRoot.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase) -or $copyRoot.StartsWith($sourceRoot.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) { throw '应用副本路径检查失败。' }
         if (Test-Path -LiteralPath $copyRoot) { throw '副本目录已存在，请重新运行。' }
-        [void][IO.Directory]::CreateDirectory($copyRoot)
+        [void][IO.Directory]::CreateDirectory($baseRoot)
         $report.Add('副本位置：' + $copyRoot)
+        $report.Add('复制方式：内置 Node.js 逐文件复制，不使用 Robocopy 或 PowerShell 扩展路径枚举')
         Write-Host '正在复制应用文件，请稍候……'
-        & (Join-Path $env:WINDIR 'System32\robocopy.exe') $sourceRoot $copyRoot /E /COPY:DAT /DCOPY:DAT /R:0 /W:0 /XJ /NFL /NDL /NJH /NJS /NP | Out-Null
-        if ($LASTEXITCODE -ge 8) { throw ('应用复制失败，Robocopy 返回 ' + $LASTEXITCODE + '。原安装未改动。') }
-        $copyItems = @(Get-ChildItem -LiteralPath (ConvertTo-CodexExtendedPath $copyRoot) -File -Recurse -Force)
-        if ($copyItems.Count -ne @($sourceItems | Where-Object { -not $_.PSIsContainer }).Count) { throw '复制后的文件数不一致，已停止。' }
+        $copiedTree = Invoke-I18nHelper $node $helper 'copy-app' $sourceRoot $copyRoot
+        $phase = '核对应用副本'
+        $report.Add('副本文件数：' + $copiedTree.files + '；总字节数：' + $copiedTree.bytes)
+        if ($copiedTree.manifestHash -ne $sourceTree.manifestHash) { throw '原应用文件清单在复制期间发生变化，请等待原版更新完成后重试。' }
         $copyExe = Join-Path $copyRoot ([IO.Path]::GetFileName($sourceApp.Executable))
         foreach ($relative in @('resources\app.asar', 'ChatGPT.exe', 'Codex.exe')) {
             $file = Join-Path $copyRoot $relative

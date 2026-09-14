@@ -8,6 +8,78 @@ const MARKER = '/*TCZH2*/';
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function requireCondition(ok, message) { if (!ok) throw new Error(message); }
 
+function inspectTree(root) {
+  root = path.resolve(root);
+  const files = [], directories = [];
+  function visit(relative) {
+    const full = path.join(root, relative), info = fs.lstatSync(full);
+    requireCondition(!info.isSymbolicLink(), '应用目录含有链接，停止复制：' + full);
+    if (info.isDirectory()) {
+      directories.push(relative);
+      for (const name of fs.readdirSync(full).sort()) visit(path.join(relative, name));
+    } else {
+      requireCondition(info.isFile(), '应用目录含有不支持的文件类型：' + full);
+      files.push({ relative, size: info.size });
+    }
+  }
+  requireCondition(fs.lstatSync(root).isDirectory(), '应用路径不是目录：' + root);
+  visit('');
+  return { root, files, directories };
+}
+
+function treeSummary(tree) {
+  const entries = [
+    ...tree.directories.map(name => ['directory', name]),
+    ...tree.files.map(file => ['file', file.relative, file.size])
+  ];
+  return { files: tree.files.length, directories: tree.directories.length,
+    bytes: tree.files.reduce((total, file) => total + file.size, 0),
+    manifestHash: sha(Buffer.from(JSON.stringify(entries))) };
+}
+
+function copyApplication(source, destination) {
+  const tree = inspectTree(source);
+  requireCondition(tree.files.length > 0, '原应用目录中没有文件，停止复制');
+  destination = path.resolve(destination);
+  // Resolve an existing parent before making any changes to either tree.
+  destination = path.join(fs.realpathSync(path.dirname(destination)), path.basename(destination));
+  const relative = path.relative(fs.realpathSync(tree.root), destination);
+  requireCondition(relative && (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)), '副本目录不能位于原应用目录内');
+  // A fresh destination is required; never merge into or overwrite an existing copy.
+  fs.mkdirSync(destination);
+  for (const name of tree.directories) if (name) fs.mkdirSync(path.join(destination, name), { recursive: true });
+  const buffer = Buffer.alloc(1024 * 1024);
+  for (const file of tree.files) {
+    let input, output;
+    try {
+      input = fs.openSync(path.join(tree.root, file.relative), 'r');
+      output = fs.openSync(path.join(destination, file.relative), 'wx');
+      let copied = 0, length;
+      // Copy bytes only, without inheriting WindowsApps encryption or file attributes.
+      while ((length = fs.readSync(input, buffer, 0, buffer.length, null)) > 0) {
+        let offset = 0;
+        while (offset < length) {
+          const written = fs.writeSync(output, buffer, offset, length - offset);
+          requireCondition(written > 0, '文件写入未完成');
+          offset += written;
+        }
+        copied += length;
+      }
+      requireCondition(copied === file.size && fs.fstatSync(output).size === file.size, '复制前后大小不一致，原文件可能正在更新');
+    } catch (error) {
+      throw new Error('复制文件失败：' + file.relative + '；' + error.message);
+    } finally {
+      if (output !== undefined) fs.closeSync(output);
+      if (input !== undefined) fs.closeSync(input);
+    }
+  }
+  let result;
+  try { result = treeSummary(inspectTree(destination)); }
+  catch (error) { throw new Error('核对副本失败：' + error.message); }
+  requireCondition(result.manifestHash === treeSummary(tree).manifestHash, '复制后的文件清单或大小不一致，停止修复');
+  return result;
+}
+
 function readArchive(file) {
   const fd = fs.openSync(file, 'r');
   try {
@@ -188,11 +260,15 @@ function patchCopy(root) {
 function summary(result) {
   return { version: result.version, chineseResources: result.chinese.length, patchedGetters: result.changes.reduce((n, x) => n + x.count, 0), files: result.changes.map(x => x.name), headerHash: result.oldHash, newHeaderHash: result.newHash, integrity: result.runtime.mode };
 }
-module.exports = { readArchive, patchSource, planArchive, writeArchive, inspectRuntime, plan, patchCopy, summary };
+module.exports = { inspectTree, treeSummary, copyApplication, readArchive, patchSource, planArchive, writeArchive, inspectRuntime, plan, patchCopy, summary };
 if (require.main === module) {
   try {
-    const [mode, root] = process.argv.slice(2);
-    requireCondition(root && ['inspect', 'patch-copy'].includes(mode), '用法：repair-i18n.cjs inspect|patch-copy 应用目录');
-    process.stdout.write(JSON.stringify(summary(mode === 'inspect' ? plan(root) : patchCopy(root))));
+    const [mode, root, destination] = process.argv.slice(2);
+    requireCondition(root && ['inspect', 'patch-copy', 'inspect-tree', 'copy-app'].includes(mode), '用法：repair-i18n.cjs inspect|patch-copy|inspect-tree|copy-app 应用目录 [新副本目录]');
+    requireCondition(mode !== 'copy-app' || destination, '复制应用时必须指定新副本目录');
+    const result = mode === 'inspect-tree' ? treeSummary(inspectTree(root))
+      : mode === 'copy-app' ? copyApplication(root, destination)
+      : summary(mode === 'inspect' ? plan(root) : patchCopy(root));
+    process.stdout.write(JSON.stringify(result));
   } catch (error) { process.stderr.write(error.message + '\n'); process.exitCode = 1; }
 }
