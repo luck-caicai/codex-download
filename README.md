@@ -102,6 +102,8 @@ Windows 上另运行 `python tests/check-windows-flow.py`。测试使用隔离�
 
 GitHub Actions 的 `.github/workflows/macos-localization.yml` 在 Apple 芯片与 Intel 的 macOS 15 原生环境中验证：把唯一 `.command` 放进空目录，关闭标准输入，使用固定官方 `26.908.40834` 完成复制、签名、配置备份和实际启动，并发送正常退出请求。测试使用临时配置，不使用真实账号；应用进程启动不等于已验证账号内的全部界面与功能。
 
+3.0 单文件版本在两个架构上均已通过[原生验证](https://github.com/luck-caicai/codex-download/actions/runs/35045395998)，每个架构 14 项修复检查通过。Windows 本地通过 20 项隔离流程检查、8 项复制检查；另有 9 项单文件入口与打包检查，以及两个平台各 22 组配置编辑样例。
+
 ## 本地查看
 
 双击 `index.html` 即可查看页面。如需通过本地网址检查，可以在这个文件夹中执行：
