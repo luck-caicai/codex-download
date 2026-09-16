@@ -202,17 +202,21 @@ function Resolve-CodexApp {
     $choices = @($apps.Values | Sort-Object Executable)
     if ($choices.Count -eq 1) { return $choices[0] }
     if ($choices.Count -gt 1) {
-        Write-Host '发现多份 Codex，请选择要设置中文的应用：'
-        for ($i = 0; $i -lt $choices.Count; $i++) { Write-Host ('{0}. {1}  {2}' -f ($i + 1), $choices[$i].Version, $choices[$i].Executable) }
-        $number = 0
-        if (-not [int]::TryParse((Read-Host '输入编号'), [ref]$number) -or $number -lt 1 -or $number -gt $choices.Count) { throw '未选择有效的 Codex，配置尚未修改。' }
-        return $choices[$number - 1]
+        Write-Host '发现多份 Codex，请在弹出的窗口中选择原版应用的 ChatGPT.exe 或 Codex.exe。'
+    } else {
+        Write-Host '请在弹出的窗口中选择已安装的 Codex：ChatGPT.exe 或 Codex.exe。'
     }
-    $path = (Read-Host '未自动找到 Codex。请粘贴 Codex.exe 或 ChatGPT.exe 的完整路径，回车取消').Trim().Trim('"')
-    if ($path) {
-        $app = Get-CodexAppInfo $path
-        if ($app) { return $app }
-    }
+    Add-Type -AssemblyName System.Windows.Forms
+    $picker = New-Object Windows.Forms.OpenFileDialog
+    $picker.Title = '选择原版 Codex，不要选择中文修复副本'
+    $picker.Filter = 'Codex 应用 (ChatGPT.exe; Codex.exe)|ChatGPT.exe;Codex.exe'
+    if ($choices.Count) { $picker.InitialDirectory = [IO.Path]::GetDirectoryName($choices[0].Executable) }
+    try {
+        if ($picker.ShowDialog() -eq [Windows.Forms.DialogResult]::OK) {
+            $app = Get-CodexAppInfo $picker.FileName
+            if ($app) { return $app }
+        }
+    } finally { $picker.Dispose() }
     throw '未识别到 Codex 桌面应用，配置尚未修改。请先安装或打开 Codex，再运行脚本。'
 }
 

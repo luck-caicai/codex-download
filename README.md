@@ -6,7 +6,7 @@
 
 各系统卡片统一提供“汉化脚本下载”入口。汉化脚本压缩包随网页一起托管，不经过网盘；Mac 两种芯片共用一个压缩包。
 
-下载卡片上方和“如何把 Codex 界面切换成中文？”说明中已补充使用指引：有魔法时，登录后从左下角“设置 → 常规 → 语言设置 → 简体中文”切换；没有魔法时，下载对应系统的汉化包，按照压缩包内教程执行。
+下载卡片上方和“如何把 Codex 界面切换成中文？”说明中已补充使用指引：有魔法时，登录后从左下角“设置 → 常规 → 语言设置 → 简体中文”切换；没有魔法时，下载对应系统的汉化脚本压缩包，解压后双击唯一的脚本，自动修复和重启。
 
 顶部导航突出显示“AI会员小铺”，会员代充区域和套餐咨询弹窗也提供同名店铺入口，均在新窗口打开配置中的店铺地址。手机端导航分两行排列，店铺入口保持可见。
 
@@ -25,7 +25,7 @@
 | `downloads.macIntel.url` | Mac Intel 安装包的网盘链接 |
 | 各下载项的 `extractionCode` | 网盘提取码，没有则留空 |
 | 各下载项的 `installGuideUrl` | 对应系统的安装教程链接，可包含章节定位 |
-| 各下载项的 `localizationScriptUrl` | 中文设置脚本压缩包，默认使用本地 `./assets/localize/` 路径 |
+| 各下载项的 `localizationScriptUrl` | 汉化脚本压缩包，默认使用本地 `./assets/localize/` 路径 |
 | 各下载项的 `size` / `version` | 按实际上传文件更新大小、版本或架构 |
 | `support.remoteToolUrl` | UU 远程工具下载链接 |
 | `shopUrl` | AI会员小铺地址，统一用于顶部导航、代充区域与咨询弹窗的店铺入口 |
@@ -49,51 +49,58 @@ groupQr: "./assets/wechat-group.jpg",
 
 此配置文件是公开的，请只写准备向访客公开的联系信息，不要写账号密码或密钥。
 
-## 中文设置脚本
+## 汉化脚本 3.0
 
-- Windows：解压 `assets/localize/codex-zh-cn-windows.zip`，双击 `codex-zh-cn.bat`。
-- Windows 已设置中文但文字仍是英文：完整解压同一个包，双击新增的“修复中文显示.bat”，按提示创建修复副本；以后使用桌面上的“Codex 中文修复版（添财AI）”。保留包内 `codex-zh-cn.bat` 和 `repair-i18n.cjs`，工具会自动调用它们。
-- Mac：将 `assets/localize/codex-zh-cn-mac.zip` 解压到新文件夹，直接双击“修复中文显示.command”，按提示创建并签名修复副本。M 系列与 Intel 通用，包内只保留一个运行入口，无需先做普通中文设置或额外运行 `.sh`。两个 `.cjs` 文件与入口保存在同一目录。以后使用桌面的“Codex 中文修复版（添财AI）.command”。
+下载包已合并为单文件，不再要求输入 Y。先结束任务并保存文件，再解压、双击对应脚本：
 
-先结束任务并保存文件。脚本在用户输入 Y 后退出 Codex，备份原配置，将 `config.toml` 中 `[desktop]` 的 `localeOverride` 设置为 `"zh-CN"`，然后重新打开应用。配置已是 `zh-CN` 时不会重复添加字段。完整用法、备份恢复方法和适用范围见压缩包内的“使用说明.txt”，每个包只介绍对应系统的操作。
+| 系统 | 下载 ZIP | ZIP 中唯一的文件 |
+| --- | --- | --- |
+| Windows | `assets/localize/codex-zh-cn-windows.zip` | `修复中文显示.bat` |
+| Mac（M 系列 / Intel 通用） | `assets/localize/codex-zh-cn-mac.zip` | `修复中文显示.command` |
 
-1.1 版会显示应用版本、应用位置和配置路径。Windows 优先识别正在运行的 Codex，兼容 MSIX 和含原始应用资源的独立目录；多份安装时让用户选择。只对选定应用路径的 GUI 进程执行退出，等待完全退出后才写入配置，并尝试重新打开同一份应用。Windows 还会只读检查应用身份和中文资源条目，在 `%LOCALAPPDATA%\TiancaiAI\CodexLocale` 保存诊断结果，不记录完整配置、聊天或账号密钥。Mac 无法确认退出状态时停止写入。
+脚本内置全部 JS 和配置编辑代码，运行时释放到独立临时目录，结束后清理这些临时文件。无需额外保留 `.cjs`、`.sh` 或普通设置脚本。正常窗口仅显示检查、修复、重启三个步骤和完成结果；技术细节保存在诊断记录中。成功后不等待输入，失败时才保留提示。Mac 终端窗口是否自动关闭取决于系统设置。
 
-“配置已写入”和“检测到进程重开”不代表已验证界面语言。Windows 普通设置脚本不修改应用文件；显示修复工具会创建应用副本。Mac 包直接提供显示修复入口，配置编辑包含在修复流程中。
+工具自动识别已安装的原版应用；发现多个候选或没有找到时，使用系统文件 / 应用选择窗口。先创建并验证修复副本，再请求 Codex 正常退出、备份语言配置、设为 `zh-CN` 并启动副本。无法正常退出时停止，不强制结束进程。以后使用桌面的“Codex 中文修复版（添财AI）”入口，Mac 入口后缀为 `.command`。
 
-### Windows 中文显示修复 2.1
+平台说明在网页对应链接中查看，源文件为 `assets/localize/使用说明-Windows.txt`、`assets/localize/使用说明-Mac.txt`，不再塞进下载 ZIP。Mac 如果双击打不开，可在终端输入 `sh ` 后拖入脚本、按回车运行。
 
-已检查的 `26.908.40834` 中，语言菜单与翻译加载对 `enable_i18n` 使用不同的默认值；设置为 `zh-CN` 并不保证翻译加载被启用。修复工具在 `%LOCALAPPDATA%\TiancaiAI\CodexChinese\build-时间-标识` 创建独立应用副本，在副本中将受支持的国际化布尔读取改为启用，并更新 ASAR 文件及分块哈希。它保留完整性校验的原状态：关闭时保留可执行文件，开启时更新副本中匹配的哈希；无法识别时停止处理，不会关闭校验功能。原安装不修改。
+### 修复范围与保留项
 
-当前版本的副本额外占用约 2 GB；脚本运行前显示实际估算值。包内 Node 工具先复制到临时目录执行，以兼容 WindowsApps 的执行限制。修复版使用独立的界面数据目录 `CodexChinese\UserData`，可能需要重新登录；`CODEX_HOME` 仍指向用户的配置目录。新建的桌面快捷方式始终指向修复副本。原版升级后可重新运行修复工具创建新版副本；旧副本可在退出后手动删除。
+已检查的 `26.908.40834` 中，语言菜单与翻译加载对 `enable_i18n` 使用不同的默认值；仅设置 `zh-CN` 不保证翻译加载启用。修复在独立副本中启用两处受支持的国际化读取，更新 ASAR 文件与分块哈希，保留原安装。中文资源、应用身份、脚本哈希、代码结构或运行时校验不符合预期时停止，不补造缺失翻译。
 
-2.1 针对复制后留下空目录、检查副本时提示 `Cannot find path` 的情况，将 Robocopy 和 PowerShell 的 `\\?\` 路径枚举改为内置 Node.js 直接读取、复制文件。只写入新建的副本目录，不合并或覆盖已有副本，不继承 WindowsApps 的加密或只读属性；复制完成后核对目录结构、文件相对路径和字节数。失败时停止后续修补、配置与启动，诊断记录包含具体出错文件、Windows / PowerShell 版本和原应用与副本的文件数量。
+副本额外占用约 2 GB，执行前检查实际空间。修复版使用独立界面数据目录 `CodexChinese/UserData`，可能需要重新登录；`CODEX_HOME` 仍指向原来的配置与会话目录。配置已有 `zh-CN` 时不重复添加。需要修改配置时，在原目录创建 `config.toml.before-zh-cn.时间标识.bak` 备份。
 
-修复范围只包括内置翻译开关和语言配置，不补造缺失翻译文件。中文资源、应用身份、原始脚本哈希、代码结构或运行时校验检查未通过时会停止。诊断文件位于 `%LOCALAPPDATA%\TiancaiAI\CodexLocale\repair-*.txt`。对于必须更新可执行文件哈希的版本，副本签名会失效，操作前有明确提示。
+- Windows 副本：`%LOCALAPPDATA%\TiancaiAI\CodexChinese\build-时间-标识`。
+- Windows 诊断：`%LOCALAPPDATA%\TiancaiAI\CodexLocale\repair-*.txt`。
+- Mac 副本：`~/Library/Application Support/TiancaiAI/CodexChinese/build-时间-标识/`。
+- Mac 诊断：`~/Library/Application Support/TiancaiAI/CodexLocale/repair-mac-*.txt`。
 
-验证包括：20 项修补检查（开关缺省 / 关闭 / 开启、真实翻译加载函数配合模拟运行时、归档偏移与分块哈希、原文件保留、未知结构拒绝）和 18 项 Windows 流程检查，覆盖复制失败或文件清单变化时停止处理。新增 `node tests/check-windows-copy.cjs` 的 8 项复制检查，覆盖超过 260 字符的路径、中文 / 空格 / 方括号路径、空文件与空目录、已有副本保护、写入失败、部分写入、目录链接与 Windows PowerShell 5.1 调用。当前版本支持的修补点为两处。真实界面是否生效仍需在目标电脑确认。
+Windows 保留 2.1 的复制修复：临时复制应用内置 Node.js，用它逐文件复制到新目录，避免 Robocopy 与 PowerShell 的扩展路径兼容问题；核对文件路径和字节数后才开始修补。文件复制不继承 WindowsApps 的加密或只读属性。完整性校验原本关闭时保留 EXE；开启时仅更新可识别的副本哈希，这类版本的副本可能无法保留原厂数字签名；不会关闭校验开关。
 
-同版本实际安装文件的测试副本已完成 5,466 个文件的复制和修补，兼容长路径；原安装的 ASAR、EXE、DLL 哈希保持一致，副本 EXE / DLL 字节未变，EXE 签名仍有效。此项验证使用独立配置文件，进程操作与桌面快捷方式创建使用模拟实现，没有启动或关闭当前 Codex。
+Mac 使用内置 Node.js、系统 `ditto` 和签名工具。复制保留应用内部链接，拒绝指向外部的链接。更新 `Info.plist` 中的资源哈希，为主应用进行本机临时签名，并验证签名；嵌套代码保留原签名。主应用移除依赖厂商身份的推送、应用组、共享钥匙串等签名权限，保留普通运行权限。本机签名不等于原厂公证，可能需要重新登录或授权，部分系统集成功能可能受影响；异常时仍可使用原版。未知额外摘要校验会停止处理。
 
-配置编辑已通过 22 组独立样例验证，Windows 文件写入与备份使用 Windows PowerShell 5.1 验证。Windows 应用识别、退出等待、取消、重开失败和配置被改回等分支使用模拟应用与进程验证；没有运行这些应用。Mac 配置编辑函数已合并到修复 `.command` 中，保留原有备份和重复运行检查逻辑。以上本地检查没有修改当前用户的实际 Codex 配置或重启应用；Mac 显示修复入口的原生环境验证见下方。
+原版升级后，先退出修复版，再运行脚本创建新版副本。旧副本不会自动升级，可在退出后手动删除不需要的 `build-` 目录；不要删除整个 `.codex`。
 
-### Mac 中文显示修复 2.1
+### 维护与验证
 
-Apple 芯片和 Intel 共用“修复中文显示.command”双击入口。2.1 版将应用识别、配置编辑和启动逻辑合并到该文件，移除旧的普通设置入口和两个 `.sh` 文件。Mac 压缩包只有四个文件：该入口、`repair-i18n.cjs`、`repair-i18n-mac.cjs` 和“使用说明.txt”。两个 `.cjs` 由入口自动调用，用户无需单独运行。
+单文件由源码生成，请修改源码后运行构建，不要直接改生成文件：
 
-脚本识别已经安装的原版 `Codex.app` 或 `ChatGPT.app`，使用其内置 Node.js。存在多个安装时由用户选择；不会自动下载开发环境。已检查两个架构的官方 `26.908.40834` 安装包，两种架构的资源归档均支持相同的两处翻译开关修补。
+- `scripts/localize/windows-repair.ps1`：Windows 自动修复流程。
+- `scripts/localize/mac-entry.command.in`：Mac 双击入口与配置编辑模板。
+- `assets/localize/repair-i18n.cjs`、`repair-i18n-mac.cjs`：内嵌修补逻辑。
+- `assets/localize/codex-zh-cn.bat`：构建时复用其中的配置与应用识别函数；旧主流程不进入下载包。
 
-副本保存在 `~/Library/Application Support/TiancaiAI/CodexChinese/build-时间-标识/`，运行前检查并显示空间需求。复制保留应用内部的框架链接，拒绝指向外部的链接；原安装不写入。修补复用 Windows 版的归档编辑逻辑，更新文件及分块哈希，同时更新 Mac `Info.plist` 中的 `ElectronAsarIntegrity`。保留运行时校验开关的原状态；开启额外框架摘要校验的版本当前会停止处理，不会关闭校验功能。
+```sh
+python scripts/build-localize.py
+python scripts/build-localize.py --check
+python tests/check-standalone.py
+node tests/check-windows-copy.cjs
+node tests/check-mac-repair.cjs
+```
 
-Mac 副本的主应用采用本机临时签名，不再具有 OpenAI 原厂签名。保留嵌套代码的原始签名，为主应用保留 JIT 等普通权限，移除依赖厂商签名的推送、应用组、共享钥匙串等权限，并允许主应用加载未修改的原厂框架。脚本随后执行 `codesign --verify --deep --strict`。这不等于原厂公证；用户可能需要重新登录或授权，部分系统集成功能可能受影响，异常时使用原版。
+Windows 上另运行 `python tests/check-windows-flow.py`。测试使用隔离配置和模拟应用进程，不关闭当前用户的 Codex。单文件检查覆盖 ZIP 只有一个完整入口、Mac 执行权限、没有键盘输入时运行、特殊字符路径、错误退出码及临时辅助文件清理。Windows 流程覆盖复制失败、源目录变动、应用未正常退出和重开失败；复制检查覆盖长路径、Unicode、已有副本保护、部分写入和目录链接。
 
-副本使用独立 `CodexChinese/UserData`，显式保留原来的 `CODEX_HOME`。脚本在用户确认后请求原版及本工具旧副本正常退出，确认退出才备份和修改语言配置。无法退出时停止，不强制结束任务。创建桌面 `.command` 启动入口；桌面不可写时，保留在副本父目录，并显示路径。诊断位于 `~/Library/Application Support/TiancaiAI/CodexLocale/repair-mac-*.txt`。
-
-验证脚本为 `tests/check-mac-repair.cjs`，包括资源哈希、原安装保留、未知摘要拒绝、签名权限转换和特殊字符路径等 13 项隔离检查。2.1 版的单一 `.command` 入口在 Apple 芯片与 Intel 的 macOS 15 原生环境均已通过[验证运行](https://github.com/luck-caicai/codex-download/actions/runs/34734191907)：使用固定官方 `26.908.40834` 版本完成复制、签名、配置备份和实际启动，并发送正常退出请求。每个架构 14 项检查通过，使用临时测试配置，不使用真实账号。另有 5 项入口检查验证成功、子进程失败状态保留、缺少辅助文件、错误系统和错误应用路径。用户已反馈 Mac 修复可生效；完整系统功能仍需在实际使用电脑上确认。
-
-参考：[Electron 的 Mac 资源完整性校验](https://www.electronjs.org/docs/latest/tutorial/asar-integrity)、[Apple 代码签名说明](https://developer.apple.com/library/archive/technotes/tn2206/)。
-
-两份说明源文件分别保存在 `assets/localize/使用说明-Windows.txt` 和 `assets/localize/使用说明-Mac.txt`。打包时，将对应系统的说明放进 ZIP，并命名为“使用说明.txt”。更新脚本或说明后，请同步重新打包对应 ZIP；页面下载的是 ZIP 文件。
+GitHub Actions 的 `.github/workflows/macos-localization.yml` 在 Apple 芯片与 Intel 的 macOS 15 原生环境中验证：把唯一 `.command` 放进空目录，关闭标准输入，使用固定官方 `26.908.40834` 完成复制、签名、配置备份和实际启动，并发送正常退出请求。测试使用临时配置，不使用真实账号；应用进程启动不等于已验证账号内的全部界面与功能。
 
 ## 本地查看
 
@@ -131,7 +138,9 @@ python -m http.server 4176
 - `app.js`：配置读取、咨询弹窗、复制、外观切换。
 - `assets/download-art.webp`：为本页面生成的下载主题配图。
 - `assets/wechat-group.jpg`：用户提供的交流群二维码原图，未重新绘制或压缩。
-- `assets/localize/`：Windows / Mac 中文设置脚本、双击启动文件、说明及可下载 ZIP。
+- `assets/localize/`：汉化代码、生成的单文件脚本、分系统说明及可下载 ZIP。
+- `scripts/`：单文件构建程序与入口模板。
+- `tests/`：单文件、复制与修复流程的隔离检查。
 - `assets/favicon.svg`：添财AI 图标。
 - `assets/PHOSPHOR-LICENSE.txt`：Phosphor Icons 2.1.1 的 MIT 许可。
 - `.nojekyll`：静态文件发布标记。

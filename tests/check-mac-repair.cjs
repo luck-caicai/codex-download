@@ -131,8 +131,13 @@ function nativeCheck(app) {
   const home = path.join(work, 'native-user'), codexHome = path.join(home, '.codex');
   fs.mkdirSync(path.join(home, 'Desktop'), { recursive: true }); fs.mkdirSync(codexHome);
   fs.writeFileSync(path.join(codexHome, 'config.toml'), 'model = "fixture-model"\n[desktop]\nlocaleOverride = "en-US"\n');
-  const result = realSpawn('/bin/sh', [path.join(__dirname, '../assets/localize/修复中文显示.command'), app], {
-    input: 'Y\n', encoding: 'utf8', timeout: 600000, maxBuffer: 4 * 1024 * 1024,
+  // Run the entry by itself with stdin closed: no companion files and no Y input.
+  const standalone = path.join(work, 'downloaded-script');
+  fs.mkdirSync(standalone);
+  const entry = path.join(standalone, '修复中文显示.command');
+  fs.copyFileSync(path.join(__dirname, '../assets/localize/修复中文显示.command'), entry);
+  const result = realSpawn('/bin/sh', [entry, app], {
+    input: '', encoding: 'utf8', timeout: 600000, maxBuffer: 4 * 1024 * 1024,
     env: { ...process.env, HOME: home, CODEX_HOME: codexHome }
   });
   console.log(result.stdout); if (result.stderr) console.error(result.stderr);
@@ -148,7 +153,7 @@ function nativeCheck(app) {
   assert(fs.readdirSync(codexHome).some(name => name.includes('.before-zh-cn.')));
   assert(lib.runningApps().some(item => fs.realpathSync(item.path) === fs.realpathSync(copy)), 'repaired app exited after startup');
   lib.runningApps('quit', [copy]);
-  checks.push('real Mac native copy, signing, config backup, launch and graceful quit: ' + process.arch);
+  checks.push('standalone Mac entry with closed stdin: copy, signing, config backup, launch and graceful quit: ' + process.arch);
 }
 try {
   const index = process.argv.indexOf('--app');

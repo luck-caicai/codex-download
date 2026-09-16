@@ -5,6 +5,8 @@ on:
     branches: ['codex/**']
     paths:
       - 'assets/localize/**'
+      - 'scripts/**'
+      - 'tests/check-standalone.py'
       - 'tests/check-mac-repair.cjs'
       - '.github/workflows/macos-localization.yml'
 permissions:
@@ -23,6 +25,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+      - name: Check standalone packages and shell entry without interactive input
+        run: |
+          python3 scripts/build-localize.py --check
+          python3 tests/check-standalone.py
       - name: Download fixed official release for an isolated test
         env:
           ARCH: ${{ matrix.arch }}

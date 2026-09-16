@@ -5,7 +5,6 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const child = require('node:child_process');
-const readline = require('node:readline/promises');
 const { planArchive, writeArchive, readArchive } = require('./repair-i18n.cjs');
 const TITLE = 'Codex 中文修复版（添财AI）';
 const TAG = '# TiancaiAI Codex Chinese launcher v2';
@@ -184,7 +183,7 @@ async function closeApps(source, base) {
 
 function writeConfig(configPath) {
   const source = fs.readFileSync(path.join(__dirname, '修复中文显示.command'), 'utf8');
-  const parts = source.split('# MAIN ENTRY');
+  const parts = source.split(/^# MAIN ENTRY$/m);
   check(parts.length === 2, '修复入口不完整，请重新解压整个 Mac 压缩包');
   return run('/bin/sh', ['-s', '--', configPath], { input: parts[0] + '\nwrite_chinese_config "$1"\n' });
 }
@@ -217,10 +216,12 @@ async function main(app) {
   const home = os.homedir(), support = path.join(home, 'Library', 'Application Support', 'TiancaiAI');
   const logRoot = path.join(support, 'CodexLocale');
   fs.mkdirSync(logRoot, { recursive: true });
-  const report = ['添财AI · Mac 中文显示修复 2.1', '时间：' + new Date().toISOString()];
-  const log = text => { console.log(text); report.push(text); };
+  const report = ['添财AI · Mac 中文显示修复 3.0', '时间：' + new Date().toISOString()];
+  const log = text => report.push(text);
+  const progress = text => { console.log(text); log(text); };
   let phase = '检查原安装', source, build, restore = false;
   try {
+    progress('[1/3] 正在检查 Codex……');
     source = inspectBundle(app);
     log('原应用：' + source.root);
     log('应用版本：' + source.version);
@@ -240,11 +241,7 @@ async function main(app) {
     log('将额外占用约 ' + Math.ceil(tree.bytes / 1048576) + ' MB。原安装保留。');
     log('副本会修改内置翻译开关，并使用本机临时签名，无法保留原厂签名。');
     log('可能需要重新登录、重新授予系统权限；原厂推送及共享钥匙串等功能可能受影响。');
-    log('请先结束任务并保存文件，继续后会退出 Codex 并打开修复副本。');
-    const prompt = readline.createInterface({ input: process.stdin, output: process.stdout });
-    let answer;
-    try { answer = await prompt.question('输入 Y 继续，其他输入取消：'); } finally { prompt.close(); }
-    if (!/^[yY]$/.test(answer)) { log('已取消。'); return; }
+    progress('[2/3] 正在复制并修复，请稍候……');
     phase = '复制应用';
     build = fs.mkdtempSync(path.join(base, 'build-' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14) + '-'));
     const copy = path.join(build, path.basename(source.root)), userData = path.join(base, 'UserData');
@@ -265,6 +262,7 @@ async function main(app) {
     report.push('本机签名移除的厂商专属权限：' + entitlements.removed.join(', '));
     report.push('修补文件：' + patched.changes.map(c => c.name).join(', '));
     phase = '退出 Codex';
+    progress('[3/3] 正在设置中文并重启 Codex……');
     restore = true;
     await closeApps(source.root, base);
     phase = '写入语言配置';
@@ -272,7 +270,7 @@ async function main(app) {
     fs.mkdirSync(userData, { recursive: true });
     phase = '创建启动入口';
     const launcher = createLauncher(copy, codexHome, userData, home, build);
-    log('以后请使用：' + launcher);
+    log('启动入口：' + launcher);
     phase = '打开修复副本';
     run('/usr/bin/open', ['-n', '--env', 'CODEX_HOME=' + codexHome, '--env', 'CODEX_ELECTRON_USER_DATA_PATH=' + userData, '--env', 'ELECTRON_LOCALE_OVERRIDE=zh-CN', copy, '--args', '--lang=zh-CN']);
     let started = false;
@@ -282,20 +280,22 @@ async function main(app) {
     }
     check(started, '暂未检测到修复版进程。请保留诊断记录；启动入口已保存。');
     restore = false;
-    log('已检测到修复副本进程，请确认页面是否显示中文。启动成功不等于已验证界面语言。');
+    log('已检测到修复副本进程；未自动验证界面语言。');
+    progress('修复完成，已打开 Codex，请检查界面是否显示中文。');
+    progress('以后请使用：' + launcher);
   } catch (error) {
     report.push('失败阶段：' + phase);
-    log('未完成：' + error.message);
+    progress('未完成：' + error.message);
     if (build) log('保留副本供检查：' + build);
     if (restore && source) {
       try { if (!runningApps().length) run('/usr/bin/open', [source.root]); } catch { }
-      log('可从原来的入口打开原版 Codex。');
+      progress('可从原来的入口打开原版 Codex。');
     }
     process.exitCode = 1;
   } finally {
     const file = path.join(logRoot, 'repair-mac-' + Date.now() + '.txt');
     fs.writeFileSync(file, report.join('\n') + '\n');
-    console.log('诊断记录：' + file);
+    if (process.exitCode) console.log('诊断记录：' + file);
   }
 }
 
